@@ -4,7 +4,7 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWKeyCallback
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil.NULL
 
 data class Colour(val red: Float = 0f, val green: Float = 0f, val blue: Float = 0f, val alpha: Float = 1f)
@@ -26,6 +26,8 @@ class Engine(
     private var keyCallback: GLFWKeyCallback? = null
 
     private var window: Long? = null
+
+    private var renderer: Renderer? = null
 
     /**
      * Perform first time initialisation such as creating a window.
@@ -77,9 +79,7 @@ class Engine(
 
         // Make the window visible
         glfwShowWindow(window!!)
-    }
 
-    private fun mainLoop() {
         // This line is critical for LWJGL's interoperation with GLFW's
         // OpenGL context, or any context that is managed externally.
         // LWJGL detects the context that is current in the current thread,
@@ -87,6 +87,10 @@ class Engine(
         // bindings available for use.
         GL.createCapabilities()
 
+        renderer = Renderer()
+    }
+
+    private fun mainLoop() {
         // Set the clear color
         glClearColor(backgroundColour.red, backgroundColour.green, backgroundColour.blue, backgroundColour.alpha)
 
@@ -128,6 +132,8 @@ class Engine(
     private fun render() {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
+        renderer?.render()
+
         glfwSwapBuffers(window!!)
     }
 
@@ -154,10 +160,15 @@ class Engine(
             mainLoop()
             glfwDestroyWindow(window!!)
         } finally {
-            keyCallback?.free()
-            errorCallback?.free()
-            glfwTerminate()
+            cleanup()
         }
+    }
+
+    private fun cleanup() {
+        renderer?.cleanup()
+        keyCallback?.free()
+        errorCallback?.free()
+        glfwTerminate()
     }
 
 }
