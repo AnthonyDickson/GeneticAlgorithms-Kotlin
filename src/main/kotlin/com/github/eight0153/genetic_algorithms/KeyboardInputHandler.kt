@@ -4,11 +4,11 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWKeyCallback
 
 class KeyboardInputHandler(window: Long) {
-    /** Map of keyboard keys to true if the key is down, false otherwise. */
-    private var keyState = HashMap<Int, Boolean>()
-    /** Map of keyboard keys to true if the key was down, false otherwise. */
-    private var previousKeyState = HashMap<Int, Boolean>()
-    val keyCallback: GLFWKeyCallback?
+    /** Maps keyboard keys to true if the key is down, false otherwise. */
+    private val keyState = Array(GLFW.GLFW_KEY_LAST) { false }
+    /** Maps keyboard keys to true if the key was down, false otherwise. */
+    private val previousKeyState = Array(GLFW.GLFW_KEY_LAST) { false }
+    private val keyCallback: GLFWKeyCallback?
 
     init {
         keyCallback = GLFW.glfwSetKeyCallback(window, object : GLFWKeyCallback() {
@@ -31,14 +31,12 @@ class KeyboardInputHandler(window: Long) {
      * This must be called before events are polled in order to correctly store the previous state.
      */
     fun update() {
-        for ((key, value) in keyState) {
-            previousKeyState[key] = value
-        }
+        keyState.copyInto(previousKeyState)
     }
 
     /** Check if [key] is down. */
     fun isDown(key: Int): Boolean {
-        return keyState.getOrDefault(key, false)
+        return keyState[key]
     }
 
     /** Check if [key] is up. */
@@ -48,24 +46,24 @@ class KeyboardInputHandler(window: Long) {
 
     /** Check if [key] is being held down (was down for the current and previous frames). */
     fun isHeldDown(key: Int): Boolean {
-        return isDown(key) && previousKeyState.getOrDefault(key, false)
+        return isDown(key) && previousKeyState[key]
     }
 
     /** Check if [key] is being held up (was up for the current and previous frames). */
     fun isHeldUp(key: Int): Boolean {
-        return isUp(key) && !previousKeyState.getOrDefault(key, false)
+        return isUp(key) && !previousKeyState[key]
     }
 
 
     /** Check if [key] is was pressed in the current frame. */
     fun wasPressed(key: Int): Boolean {
-        return isDown(key) && !previousKeyState.getOrDefault(key, false)
+        return isDown(key) && !previousKeyState[key]
     }
 
 
     /** Check if [key] is was released in the current frame. */
     fun wasReleased(key: Int): Boolean {
-        return isUp(key) && previousKeyState.getOrDefault(key, false)
+        return isUp(key) && previousKeyState[key]
     }
 
     fun cleanup() {
