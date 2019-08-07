@@ -27,6 +27,7 @@ class Engine(
     private val keyboard: KeyboardInputHandler
     private val mouse: MouseInputHandler
     private val renderer: Renderer
+    private val quadMesh: Mesh
     private val frameRateLogger = FrameRateLogger()
 
     init {
@@ -71,7 +72,18 @@ class Engine(
         // bindings available for use.
         GL.createCapabilities()
 
-        renderer = Renderer()
+        // A quad/rectangle
+        quadMesh = Mesh(
+            arrayOf(
+                -0.5f, 0.5f, 0.0f,
+                -0.5f, -0.5f, 0.0f,
+                0.5f, 0.5f, 0.0f,
+                0.5f, 0.5f, 0.0f,
+                -0.5f, -0.5f, 0.0f,
+                0.5f, -0.5f, 0.0f
+            )
+        )
+        renderer = Renderer(quadMesh)
         keyboard = KeyboardInputHandler(window)
         mouse = MouseInputHandler(window)
     }
@@ -117,7 +129,7 @@ class Engine(
 
         // Print the info text and center it.
         val infoMessages = arrayOf(
-            "This just renders a triangle at this point.",
+            "This just renders a rectangle at this point.",
             "Nothing too interesting.",
             "I know, the title is bit of a let down, isn't it?",
             "But at least there is this sort of fancy text formatting, right??"
@@ -193,6 +205,7 @@ class Engine(
 
     private fun cleanup() {
         renderer.cleanup()
+        quadMesh.cleanup()
         keyboard.cleanup()
         mouse.cleanup()
         errorCallback?.free()
