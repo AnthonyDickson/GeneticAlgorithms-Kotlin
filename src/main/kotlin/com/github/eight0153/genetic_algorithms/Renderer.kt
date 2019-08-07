@@ -16,13 +16,10 @@ class Renderer(private val mesh: Mesh) {
 
     fun render() {
         shaderProgram.bind()
-
         // Draw the mesh
         glBindVertexArray(mesh.vaoId)
         glEnableVertexAttribArray(0)
-
-        // Draw the vertices
-        glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount)
+        glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0)
 
         // Restore state
         glDisableVertexAttribArray(0)
