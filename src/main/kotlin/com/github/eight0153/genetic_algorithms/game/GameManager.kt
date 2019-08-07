@@ -15,7 +15,11 @@ class GameManager : GameManagerI {
     private lateinit var renderer: Renderer
     private lateinit var quadMesh: Mesh
 
+    private lateinit var camera: Camera
+    private val cameraMoveSpeed = 0.1f
+
     override fun init(windowSize: Size, windowName: String) {
+        camera = Camera(windowSize)
         // A quad/rectangle
         quadMesh = Mesh(
             arrayOf(
@@ -32,7 +36,36 @@ class GameManager : GameManagerI {
             ),
             arrayOf(0, 1, 2, 1, 2, 3)
         )
-        renderer = Renderer(windowSize.copy(), quadMesh)
+//        cubeMesh = Mesh(
+//            arrayOf(
+//                -0.5f, -0.5f, -0.5f,
+//                -0.5f, 0.5f, -0.5f,
+//                0.5f, -0.5f, -0.5f,
+//                0.5f, 0.5f, -0.5f
+//                -0.5f, -0.5f, -1.5f,
+//                -0.5f, 0.5f, -1.5f,
+//                0.5f, -0.5f, -1.5f,
+//                0.5f, 0.5f, -1.5f
+//            ),
+//            arrayOf(
+//                0.5f, 0.0f, 0.0f,
+//                0.0f, 0.5f, 0.0f,
+//                0.0f, 0.0f, 0.5f,
+//                0.0f, 0.5f, 0.5f,
+//                0.5f, 0.0f, 0.0f,
+//                0.0f, 0.5f, 0.0f,
+//                0.0f, 0.0f, 0.5f,
+//                0.0f, 0.5f, 0.5f
+//            ),
+//            arrayOf(0, 1, 2, 1, 2, 3, // Front face
+//                    0, 1, 4, 1, 4, 5, // Left face
+//                    2, 3, 6, 3 , 6, 7, // Right face
+//                    1, 3, 5, 3, 5, 7, // Top face
+//                    0, 2, 4, 2, 4, 6, // Bottom face
+//                    4, 5, 6, 5, 6, 7  // Back face
+//                )
+//        )
+        renderer = Renderer(camera, quadMesh)
         printInfo(windowName)
     }
 
@@ -46,6 +79,18 @@ class GameManager : GameManagerI {
         // EPILEPSY WARNING: Flashing Colours
         if (mouse.isHeldDown(GLFW.GLFW_MOUSE_BUTTON_LEFT)) {
             GL33.glClearColor(Random.nextFloat(), Random.nextFloat(), Random.nextFloat(), 1.0f)
+        }
+
+        if (keyboard.isDown(GLFW.GLFW_KEY_W)) {
+            camera.position.y += cameraMoveSpeed
+        } else if (keyboard.isDown(GLFW.GLFW_KEY_S)) {
+            camera.position.y -= cameraMoveSpeed
+        }
+
+        if (keyboard.isDown(GLFW.GLFW_KEY_A)) {
+            camera.position.x -= cameraMoveSpeed
+        } else if (keyboard.isDown(GLFW.GLFW_KEY_D)) {
+            camera.position.x += cameraMoveSpeed
         }
 
         return true
@@ -92,13 +137,17 @@ class GameManager : GameManagerI {
         println(header)
         println("-".repeat(header.length))
 
-        println("F1: \tToggle frame rate logging.")
+        println("F1: \tToggle frame rate logging")
         println(
             "LMD: \tChange background colour rapidly while LMD is held down. \n" +
                     "\t\tWARNING: This feature may potentially trigger seizures for people with \n" +
                     "\t\tphotosensitive epilepsy. \n" +
                     "\t\tUser discretion is advised."
         )
+        println("W: Move up")
+        println("S: Move down")
+        println("A: Move left")
+        println("D: Move right")
         println("#${"=".repeat(lineWidth - 2)}#")
     }
 }

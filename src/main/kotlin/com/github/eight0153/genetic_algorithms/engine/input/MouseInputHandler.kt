@@ -1,6 +1,6 @@
 package com.github.eight0153.genetic_algorithms.engine.input
 
-import org.joml.Vector2d
+import org.joml.Vector2f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWCursorEnterCallback
 import org.lwjgl.glfw.GLFWCursorPosCallback
@@ -13,12 +13,12 @@ class MouseInputHandler(window: Long) {
     /** Maps mouse buttons to true if the button was down, false otherwise. */
     private val previousButtonState = Array(GLFW_MOUSE_BUTTON_LAST) { false }
 
-    val position = Vector2d()
-    private val previousPosition = Vector2d()
+    val position = Vector2f()
+    private val previousPosition = Vector2f()
     /** How much the mouse moved between the current and previous frame. */
-    val deltaPosition = Vector2d()
+    val deltaPosition = Vector2f()
 
-    val scrollOffset = Vector2d()
+    val scrollOffset = Vector2f()
 
     private val buttonCallback: GLFWMouseButtonCallback?
     private val cursorEnterCallback: GLFWCursorEnterCallback?
@@ -48,13 +48,13 @@ class MouseInputHandler(window: Long) {
 
         scrollCallback = glfwSetScrollCallback(window, object : GLFWScrollCallback() {
             override fun invoke(window: Long, xoffset: Double, yoffset: Double) {
-                scrollOffset.set(xoffset, yoffset)
+                scrollOffset.set(xoffset.toFloat(), yoffset.toFloat())
             }
         })
 
         positionCallback = glfwSetCursorPosCallback(window, object : GLFWCursorPosCallback() {
             override fun invoke(window: Long, xpos: Double, ypos: Double) {
-                position.set(xpos, ypos)
+                position.set(xpos.toFloat(), ypos.toFloat())
                 previousPosition.sub(position, deltaPosition)
             }
         })
