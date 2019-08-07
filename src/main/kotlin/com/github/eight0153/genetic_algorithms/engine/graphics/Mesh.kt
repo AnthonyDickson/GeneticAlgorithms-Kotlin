@@ -1,4 +1,4 @@
-package com.github.eight0153.genetic_algorithms
+package com.github.eight0153.genetic_algorithms.engine.graphics
 
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil

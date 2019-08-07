@@ -1,4 +1,4 @@
-package com.github.eight0153.genetic_algorithms
+package com.github.eight0153.genetic_algorithms.game
 
 class FrameRateLogger(
     /** How often to print log messages in seconds (can be fractional). */

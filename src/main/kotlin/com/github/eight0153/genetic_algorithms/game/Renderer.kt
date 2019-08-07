@@ -1,5 +1,9 @@
-package com.github.eight0153.genetic_algorithms
+package com.github.eight0153.genetic_algorithms.game
 
+import com.github.eight0153.genetic_algorithms.engine.Size
+import com.github.eight0153.genetic_algorithms.engine.Utils
+import com.github.eight0153.genetic_algorithms.engine.graphics.Mesh
+import com.github.eight0153.genetic_algorithms.engine.graphics.ShaderProgram
 import org.joml.Matrix4f
 import org.lwjgl.opengl.GL30.*
 

@@ -1,4 +1,4 @@
-package com.github.eight0153.genetic_algorithms
+package com.github.eight0153.genetic_algorithms.engine.input
 
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWKeyCallback

@@ -1,4 +1,4 @@
-package com.github.eight0153.genetic_algorithms
+package com.github.eight0153.genetic_algorithms.engine.graphics
 
 
 import org.joml.Matrix4f

@@ -1,16 +1,21 @@
-package com.github.eight0153.genetic_algorithms
+package com.github.eight0153.genetic_algorithms.game
 
+import com.github.eight0153.genetic_algorithms.engine.GameManagerI
+import com.github.eight0153.genetic_algorithms.engine.Size
+import com.github.eight0153.genetic_algorithms.engine.graphics.Mesh
+import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
+import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL33
 import kotlin.random.Random
 
-class GameManager {
+class GameManager : GameManagerI {
     private val frameRateLogger = FrameRateLogger()
 
     private lateinit var renderer: Renderer
     private lateinit var quadMesh: Mesh
 
-    fun init(windowSize: Size, windowName: String) {
+    override fun init(windowSize: Size, windowName: String) {
         // A quad/rectangle
         quadMesh = Mesh(
             arrayOf(
@@ -31,14 +36,7 @@ class GameManager {
         printInfo(windowName)
     }
 
-    fun update(delta: Double) {
-        frameRateLogger.update(delta)
-    }
-
-    /**
-     * Handle [keyboard] and [mouse] input and return True if program should continue execution or
-     */
-    fun handleInput(keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
+    override fun handleInput(keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
         if (keyboard.wasReleased(GLFW.GLFW_KEY_ESCAPE)) {
             return false
         } else if (keyboard.wasPressed(GLFW.GLFW_KEY_F1)) {
@@ -53,11 +51,15 @@ class GameManager {
         return true
     }
 
-    fun render() {
+    override fun update(delta: Double) {
+        frameRateLogger.update(delta)
+    }
+
+    override fun render() {
         renderer.render()
     }
 
-    fun cleanup() {
+    override fun cleanup() {
         renderer.cleanup()
         quadMesh.cleanup()
     }
