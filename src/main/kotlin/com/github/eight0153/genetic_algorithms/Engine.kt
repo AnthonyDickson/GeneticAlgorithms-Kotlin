@@ -80,6 +80,12 @@ class Engine(
                 0.5f, -0.5f, 0.0f,
                 0.5f, 0.5f, 0.0f
             ),
+            arrayOf(
+                0.5f, 0.0f, 0.0f,
+                0.0f, 0.5f, 0.0f,
+                0.0f, 0.0f, 0.5f,
+                0.0f, 0.5f, 0.5f
+            ),
             arrayOf(0, 1, 2, 1, 2, 3)
         )
         renderer = Renderer(quadMesh)

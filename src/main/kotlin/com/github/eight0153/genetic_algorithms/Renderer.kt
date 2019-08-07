@@ -19,6 +19,7 @@ class Renderer(private val mesh: Mesh) {
         // Draw the mesh
         glBindVertexArray(mesh.vaoId)
         glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
         glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0)
 
         // Restore state

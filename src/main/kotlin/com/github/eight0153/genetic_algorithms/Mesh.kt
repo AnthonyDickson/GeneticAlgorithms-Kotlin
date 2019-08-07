@@ -5,15 +5,17 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
-class Mesh(positions: Array<Float>, indices: Array<Int>) {
+class Mesh(positions: Array<Float>, colours: Array<Float>, indices: Array<Int>) {
     val vaoId: Int
     private val vboId: Int
+    private val colourVboId: Int
     private val indexVboId: Int
     val vertexCount: Int
 
     init {
         var verticesBuffer: FloatBuffer? = null
         var indicesBuffer: IntBuffer? = null
+        var colourBuffer: FloatBuffer? = null
 
         try {
             vertexCount = indices.size
@@ -33,6 +35,15 @@ class Mesh(positions: Array<Float>, indices: Array<Int>) {
             // 3 for 3D coordinates
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0)
 
+            // Create the colour buffer
+            colourBuffer = MemoryUtil.memAllocFloat(colours.size)
+            colourBuffer.put(colours.toFloatArray()).flip()
+
+            colourVboId = glGenBuffers()
+            glBindBuffer(GL_ARRAY_BUFFER, colourVboId)
+            glBufferData(GL_ARRAY_BUFFER, colourBuffer!!, GL_STATIC_DRAW)
+            glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0)
+
             // Create the index buffer
             indicesBuffer = MemoryUtil.memAllocInt(indices.size)
             indicesBuffer.put(indices.toIntArray()).flip()
@@ -47,6 +58,7 @@ class Mesh(positions: Array<Float>, indices: Array<Int>) {
         } finally {
             // Have to manually dealloc off-heap memory
             MemoryUtil.memFree(verticesBuffer)
+            MemoryUtil.memFree(colourBuffer)
             MemoryUtil.memFree(indicesBuffer)
         }
     }
@@ -56,6 +68,7 @@ class Mesh(positions: Array<Float>, indices: Array<Int>) {
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glDeleteBuffers(vboId)
+        glDeleteBuffers(colourVboId)
         glDeleteBuffers(indexVboId)
 
         glBindVertexArray(0)
