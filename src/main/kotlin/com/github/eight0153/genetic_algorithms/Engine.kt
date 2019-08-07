@@ -75,10 +75,10 @@ class Engine(
         // A quad/rectangle
         quadMesh = Mesh(
             arrayOf(
-                -0.5f, -0.5f, 0.0f,
-                -0.5f, 0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                0.5f, 0.5f, 0.0f
+                -0.5f, -0.5f, -1.05f,
+                -0.5f, 0.5f, -1.05f,
+                0.5f, -0.5f, -1.05f,
+                0.5f, 0.5f, -1.05f
             ),
             arrayOf(
                 0.5f, 0.0f, 0.0f,
@@ -88,7 +88,7 @@ class Engine(
             ),
             arrayOf(0, 1, 2, 1, 2, 3)
         )
-        renderer = Renderer(quadMesh)
+        renderer = Renderer(windowSize.copy(), quadMesh)
         keyboard = KeyboardInputHandler(window)
         mouse = MouseInputHandler(window)
     }

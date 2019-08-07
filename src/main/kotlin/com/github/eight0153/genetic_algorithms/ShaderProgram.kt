@@ -1,7 +1,9 @@
 package com.github.eight0153.genetic_algorithms
 
 
+import org.joml.Matrix4f
 import org.lwjgl.opengl.GL20.*
+import org.lwjgl.system.MemoryStack
 
 /** Encapsulates a shader program and its shaders. */
 class ShaderProgram @Throws(Exception::class)
@@ -10,9 +12,33 @@ constructor() {
     private var vertexShaderId: Int = 0
     private var fragmentShaderId: Int = 0
 
+    private val uniforms: MutableMap<String, Int>
+
     init {
         if (programId == 0) {
             throw Exception("Could not create Shader")
+        }
+
+        uniforms = HashMap()
+    }
+
+    /** Create a global GLSL variable with the name [uniformName]. */
+    @Throws(Exception::class)
+    fun createUniform(uniformName: String) {
+        val uniformLocation = glGetUniformLocation(programId, uniformName)
+
+        if (uniformLocation < 0) {
+            throw Exception("Could not find uniform: $uniformName")
+        }
+
+        uniforms[uniformName] = uniformLocation
+    }
+
+    fun setUniform(uniformName: String, value: Matrix4f) {
+        MemoryStack.stackPush().use {
+            val fb = it.mallocFloat(16)
+            value.get(fb)
+            glUniformMatrix4fv(uniforms[uniformName]!!, false, fb)
         }
     }
 
