@@ -1,5 +1,6 @@
 package com.github.eight0153.genetic_algorithms.engine
 
+import com.github.eight0153.genetic_algorithms.engine.graphics.Colour
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.lwjgl.glfw.GLFW.*
@@ -7,9 +8,6 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil.NULL
-
-data class Colour(val red: Float = 0f, val green: Float = 0f, val blue: Float = 0f, val alpha: Float = 1f)
-data class Size(val width: Int = 0, val height: Int = 0)
 
 class Engine(
     private val gameManager: GameManagerI,
@@ -91,7 +89,7 @@ class Engine(
             previous = frameStartTime
             processingTime += delta
 
-            updateInput()
+            updateInput(delta)
 
             // Update game state while we have time.
             while (processingTime >= targetFrameTime) {
@@ -105,7 +103,7 @@ class Engine(
 
     }
 
-    private fun updateInput() {
+    private fun updateInput(delta: Double) {
         // This must be called before events are polled in order to correctly store the previous state.
         keyboard.update()
         mouse.update()
@@ -113,7 +111,7 @@ class Engine(
         // Poll for window events. The key and mouse callbacks will only be invoked during this call.
         glfwPollEvents()
 
-        if (!gameManager.handleInput(keyboard, mouse)) {
+        if (!gameManager.handleInput(delta, keyboard, mouse)) {
             glfwSetWindowShouldClose(window, true)
         }
     }

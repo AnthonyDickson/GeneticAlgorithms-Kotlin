@@ -1,7 +1,6 @@
 package com.github.eight0153.genetic_algorithms.game
 
-import com.github.eight0153.genetic_algorithms.engine.GameManagerI
-import com.github.eight0153.genetic_algorithms.engine.Size
+import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.graphics.Mesh
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
@@ -13,29 +12,34 @@ class GameManager : GameManagerI {
     private val frameRateLogger = FrameRateLogger()
 
     private lateinit var renderer: Renderer
-    private lateinit var quadMesh: Mesh
+    private lateinit var gameObjects: Array<GameObject>
 
     private lateinit var camera: Camera
-    private val cameraMoveSpeed = 0.1f
+    private val cameraMoveSpeed = 1f
 
     override fun init(windowSize: Size, windowName: String) {
         camera = Camera(windowSize)
-        // A quad/rectangle
-        quadMesh = Mesh(
-            arrayOf(
-                -0.5f, -0.5f, -1.05f,
-                -0.5f, 0.5f, -1.05f,
-                0.5f, -0.5f, -1.05f,
-                0.5f, 0.5f, -1.05f
-            ),
-            arrayOf(
-                0.5f, 0.0f, 0.0f,
-                0.0f, 0.5f, 0.0f,
-                0.0f, 0.0f, 0.5f,
-                0.0f, 0.5f, 0.5f
-            ),
-            arrayOf(0, 1, 2, 1, 2, 3)
+
+        val quad = GameObject(
+            Mesh(
+                arrayOf(
+                    -0.5f, -0.5f, 0.0f,
+                    -0.5f, 0.5f, 0.0f,
+                    0.5f, -0.5f, 0.0f,
+                    0.5f, 0.5f, 0.0f
+                ),
+                arrayOf(
+                    0.5f, 0.0f, 0.0f,
+                    0.0f, 0.5f, 0.0f,
+                    0.0f, 0.0f, 0.5f,
+                    0.0f, 0.5f, 0.5f
+                ),
+                arrayOf(0, 1, 2, 1, 2, 3)
+            )
         )
+
+        quad.transform.translate(z = -1.0f)
+        gameObjects = arrayOf(quad)
 //        cubeMesh = Mesh(
 //            arrayOf(
 //                -0.5f, -0.5f, -0.5f,
@@ -65,11 +69,11 @@ class GameManager : GameManagerI {
 //                    4, 5, 6, 5, 6, 7  // Back face
 //                )
 //        )
-        renderer = Renderer(camera, quadMesh)
+        renderer = Renderer(camera)
         printInfo(windowName)
     }
 
-    override fun handleInput(keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
+    override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
         if (keyboard.wasReleased(GLFW.GLFW_KEY_ESCAPE)) {
             return false
         } else if (keyboard.wasPressed(GLFW.GLFW_KEY_F1)) {
@@ -82,31 +86,38 @@ class GameManager : GameManagerI {
         }
 
         if (keyboard.isDown(GLFW.GLFW_KEY_W)) {
-            camera.position.y += cameraMoveSpeed
+            camera.translate(y = cameraMoveSpeed * delta.toFloat())
         } else if (keyboard.isDown(GLFW.GLFW_KEY_S)) {
-            camera.position.y -= cameraMoveSpeed
+            camera.translate(y = -cameraMoveSpeed * delta.toFloat())
         }
 
         if (keyboard.isDown(GLFW.GLFW_KEY_A)) {
-            camera.position.x -= cameraMoveSpeed
+            camera.translate(x = -cameraMoveSpeed * delta.toFloat())
         } else if (keyboard.isDown(GLFW.GLFW_KEY_D)) {
-            camera.position.x += cameraMoveSpeed
+            camera.translate(x = cameraMoveSpeed * delta.toFloat())
         }
 
         return true
     }
 
     override fun update(delta: Double) {
+        for (gameObject in gameObjects) {
+            gameObject.update(delta)
+        }
+
         frameRateLogger.update(delta)
     }
 
     override fun render() {
-        renderer.render()
+        renderer.render(gameObjects)
     }
 
     override fun cleanup() {
+        for (gameObject in gameObjects) {
+            gameObject.cleanup()
+        }
+
         renderer.cleanup()
-        quadMesh.cleanup()
     }
 
     private fun printInfo(programName: String, lineWidth: Int = 80) {

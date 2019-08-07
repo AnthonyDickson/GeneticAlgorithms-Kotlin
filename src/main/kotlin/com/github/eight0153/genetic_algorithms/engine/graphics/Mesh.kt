@@ -63,6 +63,20 @@ class Mesh(positions: Array<Float>, colours: Array<Float>, indices: Array<Int>) 
         }
     }
 
+    fun render() {
+        // Draw the mesh
+        glBindVertexArray(vaoId)
+        glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
+
+        glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0)
+
+        // Restore state
+        glDisableVertexAttribArray(0)
+        glDisableVertexAttribArray(1)
+        glBindVertexArray(0)
+    }
+
     fun cleanup() {
         glDisableVertexAttribArray(0)
 

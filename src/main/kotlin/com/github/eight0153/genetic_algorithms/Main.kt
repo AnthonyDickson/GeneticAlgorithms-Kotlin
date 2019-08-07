@@ -1,8 +1,8 @@
 package com.github.eight0153.genetic_algorithms
 
-import com.github.eight0153.genetic_algorithms.engine.Colour
 import com.github.eight0153.genetic_algorithms.engine.Engine
 import com.github.eight0153.genetic_algorithms.engine.Size
+import com.github.eight0153.genetic_algorithms.engine.graphics.Colour
 import com.github.eight0153.genetic_algorithms.game.GameManager
 
 fun main() {

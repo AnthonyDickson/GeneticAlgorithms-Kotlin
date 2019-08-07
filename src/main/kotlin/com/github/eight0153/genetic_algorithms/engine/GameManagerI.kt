@@ -28,7 +28,7 @@ interface GameManagerI {
      * Handle [keyboard] and [mouse] input and return true if program should continue execution or false if the
      * program should quit.
      */
-    fun handleInput(keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean
+    fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean
 
     /** Perform an update step where [delta] is the seconds since the last frame. */
     fun update(delta: Double)
