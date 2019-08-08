@@ -11,7 +11,7 @@ open class Transform(
 ) {
     val transformMatrix: Matrix4f get() = Matrix4f().translate(position).rotate(rotation).scale(scale)
 
-    fun rotate(x: Float = 0f, y: Float = 0f, z: Float = 0f) {
+    open fun rotate(x: Float = 0f, y: Float = 0f, z: Float = 0f) {
         rotation.rotateXYZ(
             Math.toRadians(x.toDouble()).toFloat(),
             Math.toRadians(y.toDouble()).toFloat(),

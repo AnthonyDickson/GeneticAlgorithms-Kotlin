@@ -14,4 +14,8 @@ class Camera(windowSize: Size) : Transform() {
         val aspectRatio = windowSize.width.toFloat() / windowSize.height
         projectionMatrix = Matrix4f().perspective(fieldOfView, aspectRatio, zNear, zFar)
     }
+
+    override fun rotate(x: Float, y: Float, z: Float) {
+        rotation.rotateLocalX(-x).rotateLocalY(-y).rotateLocalZ(-z)
+    }
 }

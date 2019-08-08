@@ -6,8 +6,6 @@ import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11.GL_LINES
-import org.lwjgl.opengl.GL33
-import kotlin.random.Random
 
 class GameManager : GameManagerI {
     private val frameRateLogger = FrameRateLogger()
@@ -17,7 +15,7 @@ class GameManager : GameManagerI {
 
     private lateinit var camera: Camera
     private val cameraMoveSpeed = 1f
-    private val cameraRotateSpeed = 10f
+    private val cameraRotateSpeed = 1f
     private val cameraZoomSpeed = 10f
 
     override fun init(windowSize: Size, windowName: String) {
@@ -90,60 +88,62 @@ class GameManager : GameManagerI {
     }
 
     override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
-        if (keyboard.wasReleased(GLFW.GLFW_KEY_ESCAPE)) {
-            return false
-        } else if (keyboard.wasPressed(GLFW.GLFW_KEY_F1)) {
-            frameRateLogger.toggle()
-        } else if (keyboard.wasPressed(GLFW.GLFW_KEY_F2)) {
-            gameObjects[1].shouldRender = !gameObjects[1].shouldRender
-        } else if (keyboard.wasPressed(GLFW.GLFW_KEY_F3)) {
-            camera.position.zero()
-            camera.translate(z = -5f)
-            camera.rotation.identity()
+        when {
+            keyboard.wasReleased(GLFW.GLFW_KEY_ESCAPE) -> return false
+            keyboard.wasPressed(GLFW.GLFW_KEY_F1) -> frameRateLogger.toggle()
+            keyboard.wasPressed(GLFW.GLFW_KEY_F2) -> gameObjects[1].shouldRender = !gameObjects[1].shouldRender
+            keyboard.wasPressed(GLFW.GLFW_KEY_F3) -> {
+                camera.position.zero()
+                camera.translate(z = -5f)
+                camera.rotation.identity()
+            }
         }
 
-        // EPILEPSY WARNING: Flashing Colours
-        if (mouse.isHeldDown(GLFW.GLFW_MOUSE_BUTTON_LEFT)) {
-            GL33.glClearColor(Random.nextFloat(), Random.nextFloat(), Random.nextFloat(), 1.0f)
+        // Camera Translation
+        when {
+            // Translation on the camera pose along the x and y axes needs to be flipped for objects to appear to move
+            // 'naturally'.
+            keyboard.isDown(GLFW.GLFW_KEY_W) -> camera.translate(y = -cameraMoveSpeed * delta.toFloat())
+            keyboard.isDown(GLFW.GLFW_KEY_S) -> camera.translate(y = cameraMoveSpeed * delta.toFloat())
         }
-
-        // Translation on the camera pose along the x and y axes needs to be flipped for objects to appear to move
-        // 'naturally'.
-        if (keyboard.isDown(GLFW.GLFW_KEY_W)) {
-            camera.translate(y = -cameraMoveSpeed * delta.toFloat())
-        } else if (keyboard.isDown(GLFW.GLFW_KEY_S)) {
-            camera.translate(y = cameraMoveSpeed * delta.toFloat())
-        }
-
-        if (keyboard.isDown(GLFW.GLFW_KEY_A)) {
-            camera.translate(x = cameraMoveSpeed * delta.toFloat())
-        } else if (keyboard.isDown(GLFW.GLFW_KEY_D)) {
-            camera.translate(x = -cameraMoveSpeed * delta.toFloat())
-        }
-
-        if (mouse.isHeldDown(GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
-            camera.rotate(
-                // Moving the mouse left/right orbits anti-clockwise/clockwise around the y-axis.
-                x = mouse.deltaPosition.y * delta.toFloat() * cameraRotateSpeed,
-                // Moving the mouse up/down orbits about the x-axis.
-                y = mouse.deltaPosition.x * delta.toFloat() * cameraRotateSpeed
-            )
-        } else if (mouse.isHeldDown(GLFW.GLFW_MOUSE_BUTTON_MIDDLE)) {
-            camera.translate(
+        // Split up x-axis and y-axis movement so that you can move along both axes simultaneously
+        when {
+            keyboard.isDown(GLFW.GLFW_KEY_A) -> camera.translate(x = cameraMoveSpeed * delta.toFloat())
+            keyboard.isDown(GLFW.GLFW_KEY_D) -> camera.translate(x = -cameraMoveSpeed * delta.toFloat())
+            mouse.isHeldDown(GLFW.GLFW_MOUSE_BUTTON_MIDDLE) -> camera.translate(
                 x = mouse.deltaPosition.x * delta.toFloat(),
                 y = -mouse.deltaPosition.y * delta.toFloat()
             )
         }
 
-        // Camera Zoom
-        camera.translate(z = (mouse.scrollOffset.y * delta * cameraZoomSpeed).toFloat())
+        // Camera rotation
+        if (mouse.isHeldDown(GLFW.GLFW_MOUSE_BUTTON_RIGHT)) camera.rotate(
+            // Moving the mouse left/right orbits anti-clockwise/clockwise around the y-axis.
+            x = mouse.deltaPosition.y * delta.toFloat() * cameraRotateSpeed,
+            // Moving the mouse up/down orbits about the x-axis.
+            y = mouse.deltaPosition.x * delta.toFloat() * cameraRotateSpeed
+        )
 
-
-        if (keyboard.isDown(GLFW.GLFW_KEY_LEFT_CONTROL) && keyboard.wasPressed(GLFW.GLFW_KEY_EQUAL)) { // `Ctrl` + `=`
-            camera.translate(z = delta.toFloat() * cameraZoomSpeed)
-        } else if (keyboard.isDown(GLFW.GLFW_KEY_LEFT_CONTROL) && keyboard.wasPressed(GLFW.GLFW_KEY_MINUS)) { // `Ctrl` + `-`
-            camera.translate(z = -1 * delta.toFloat() * cameraZoomSpeed)
+        when {
+            keyboard.isDown(GLFW.GLFW_KEY_Q) -> camera.rotate(z = delta.toFloat() * cameraRotateSpeed)
+            keyboard.isDown(GLFW.GLFW_KEY_E) -> camera.rotate(z = -1 * delta.toFloat() * cameraRotateSpeed)
         }
+
+        // Camera Zoom
+        when {
+            mouse.scrollOffset.length() > 0 -> {
+                camera.translate(z = (mouse.scrollOffset.y * delta * cameraZoomSpeed).toFloat())
+            }
+            // `Ctrl` + `=`
+            keyboard.isDown(GLFW.GLFW_KEY_LEFT_CONTROL) && keyboard.wasPressed(GLFW.GLFW_KEY_EQUAL) -> {
+                camera.translate(z = delta.toFloat() * cameraZoomSpeed)
+            }
+            // `Ctrl` + `-`
+            keyboard.isDown(GLFW.GLFW_KEY_LEFT_CONTROL) && keyboard.wasPressed(GLFW.GLFW_KEY_MINUS) -> {
+                camera.translate(z = -1 * delta.toFloat() * cameraZoomSpeed)
+            }
+        }
+
         return true
     }
 
@@ -197,7 +197,7 @@ class GameManager : GameManagerI {
 
         val spacingFormat = "%-15s %s"
 
-        val controls = mapOf<String, String>(
+        val controls = mapOf(
             Pair("F1:", "Toggle frame rate logging"),
             Pair("F2:", "Toggle XYZ axes"),
             Pair("F3:", "Reset the camera"),
@@ -206,6 +206,7 @@ class GameManager : GameManagerI {
             Pair("Mouse Wheel:", "Zoom the camera"),
             Pair("`Ctrl` + `-`:", "Zoom the camera out"),
             Pair("`Ctrl` + `+`:", "Zoom the camera in"),
+            Pair("Q/E:", "Roll the camera left/right"),
             Pair("W/A/S/D:", "Pan the camera up/left/down/right")
         )
 
