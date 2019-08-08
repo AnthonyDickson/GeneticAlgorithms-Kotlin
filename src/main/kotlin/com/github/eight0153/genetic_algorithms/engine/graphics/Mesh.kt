@@ -6,11 +6,12 @@ import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
 class Mesh(positions: Array<Float>, colours: Array<Float>, indices: Array<Int>, private val mode: Int = GL_TRIANGLES) {
-    val vaoId: Int
+
+    private val vaoId: Int
     private val vboId: Int
     private val colourVboId: Int
     private val indexVboId: Int
-    val vertexCount: Int
+    private val vertexCount: Int
 
     init {
         var verticesBuffer: FloatBuffer? = null
@@ -88,4 +89,37 @@ class Mesh(positions: Array<Float>, colours: Array<Float>, indices: Array<Int>, 
         glBindVertexArray(0)
         glDeleteVertexArrays(vaoId)
     }
+}
+
+fun createCubeMesh(colour: Colour = Colour(0.75f, 0.25f, 0.25f)): Mesh {
+    return Mesh(
+        arrayOf(
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, 0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f
+        ),
+        arrayOf(
+            colour.red, colour.blue, colour.green,
+            colour.red, colour.blue, colour.green,
+            colour.red, colour.blue, colour.green,
+            colour.red, colour.blue, colour.green,
+            colour.red, colour.blue, colour.green,
+            colour.red, colour.blue, colour.green,
+            colour.red, colour.blue, colour.green,
+            colour.red, colour.blue, colour.green
+        ),
+        arrayOf(
+            0, 1, 2, 1, 2, 3, // Front face
+            0, 1, 4, 1, 4, 5, // Left face
+            2, 3, 6, 3, 6, 7, // Right face
+            1, 3, 5, 3, 5, 7, // Top face
+            0, 2, 4, 2, 4, 6, // Bottom face
+            4, 5, 6, 5, 6, 7  // Back face
+        )
+    )
 }
