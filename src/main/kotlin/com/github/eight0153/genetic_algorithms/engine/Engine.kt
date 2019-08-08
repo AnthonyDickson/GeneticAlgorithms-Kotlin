@@ -69,6 +69,8 @@ class Engine(
         // bindings available for use.
         GL.createCapabilities()
 
+        glEnable(GL_DEPTH_TEST)
+
         // Set the clear color
         glClearColor(backgroundColour.red, backgroundColour.green, backgroundColour.blue, backgroundColour.alpha)
 

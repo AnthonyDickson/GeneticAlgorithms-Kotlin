@@ -4,7 +4,7 @@ import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 
-class Transform(
+open class Transform(
     var position: Vector3f = Vector3f(),
     var scale: Float = 1f,
     var rotation: Quaternionf = Quaternionf()
