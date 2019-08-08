@@ -25,9 +25,9 @@ class Renderer(
         shaderProgram.setUniform("viewMatrix", camera.viewMatrix)
         shaderProgram.setUniform("projectionMatrix", camera.projectionMatrix)
 
-        for (gameObject in gameObjects) {
+        for (gameObject in gameObjects.filter { it.shouldRender }) {
             shaderProgram.setUniform("modelMatrix", gameObject.modelMatrix)
-            gameObject.mesh.render()
+            gameObject.render()
         }
 
         shaderProgram.unbind()

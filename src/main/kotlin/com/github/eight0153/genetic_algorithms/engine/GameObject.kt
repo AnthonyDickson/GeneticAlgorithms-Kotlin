@@ -5,6 +5,11 @@ import org.joml.Matrix4f
 
 class GameObject(val mesh: Mesh, val transform: Transform = Transform()) {
     val modelMatrix: Matrix4f get() = transform.transformMatrix
+    var shouldRender = true
+
+    fun render() {
+        mesh.render()
+    }
 
     fun update(delta: Double) {}
 
