@@ -1,6 +1,7 @@
 package com.github.eight0153.genetic_algorithms.engine
 
 import com.github.eight0153.genetic_algorithms.engine.graphics.ShaderProgram
+import org.joml.Matrix4f
 
 
 /** Renders an object. */
@@ -19,13 +20,14 @@ class Renderer(
         shaderProgram.createUniform("projection")
     }
 
-    fun render(gameObjects: Array<GameObject>) {
+    fun render(gameObjects: ArrayList<GameObject>) {
         shaderProgram.bind()
         shaderProgram.setUniform("projection", camera.projectionMatrix)
         val viewMatrix = camera.viewMatrix
+        val viewModel = Matrix4f()
 
         for (gameObject in gameObjects.filter { it.shouldRender }) {
-            val viewModel = viewMatrix.mul(gameObject.modelMatrix)
+            viewMatrix.mul(gameObject.modelMatrix, viewModel)
             shaderProgram.setUniform("viewModel", viewModel)
             gameObject.render()
         }
