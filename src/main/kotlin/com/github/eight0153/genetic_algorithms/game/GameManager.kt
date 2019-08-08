@@ -14,13 +14,13 @@ class GameManager : GameManagerI {
     private lateinit var gameObjects: Array<GameObject>
 
     private lateinit var camera: Camera
-    private val cameraMoveSpeed = 1f
-    private val cameraRotateSpeed = 1f
+    private val cameraMoveSpeed = 20f
+    private val cameraRotateSpeed = 20f
     private val cameraZoomSpeed = 10f
 
     override fun init(windowSize: Size, windowName: String) {
         camera = Camera(windowSize)
-        camera.translate(z = -5f)
+        resetCamera()
 
         val cube = GameObject(
             Mesh(
@@ -54,6 +54,26 @@ class GameManager : GameManagerI {
                 )
             )
         )
+        cube.transform.translate(y = 0.5f)
+
+        val ground = GameObject(
+            Mesh(
+                arrayOf(
+                    0.0f, 0.0f, 0.0f,
+                    100.0f, 0.0f, 0.0f,
+                    0.0f, 0.0f, 100.0f,
+                    100.0f, 0.0f, 100.0f
+                ),
+                arrayOf(
+                    0.5f, 0.0f, 0.0f,
+                    0.0f, 0.5f, 0.0f,
+                    0.0f, 0.0f, 0.5f,
+                    0.0f, 0.5f, 0.5f
+                ),
+                arrayOf(0, 1, 2, 1, 2, 3)
+            )
+        )
+        ground.transform.translate(-50.0f, 0.0f, -50.0f)
 
         val axes = GameObject(
             Mesh(
@@ -82,9 +102,16 @@ class GameManager : GameManagerI {
             )
         )
 
-        gameObjects = arrayOf(cube, axes)
+        gameObjects = arrayOf(cube, axes, ground)
         renderer = Renderer(camera)
         printInfo(windowName)
+    }
+
+    fun resetCamera() {
+        camera.translation.zero()
+        camera.translate(y = 1.0f, z = 5.0f)
+        camera.rotation.zero()
+        camera.rotate(15.0f)
     }
 
     override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
@@ -92,57 +119,41 @@ class GameManager : GameManagerI {
             keyboard.wasReleased(GLFW.GLFW_KEY_ESCAPE) -> return false
             keyboard.wasPressed(GLFW.GLFW_KEY_F1) -> frameRateLogger.toggle()
             keyboard.wasPressed(GLFW.GLFW_KEY_F2) -> gameObjects[1].shouldRender = !gameObjects[1].shouldRender
-            keyboard.wasPressed(GLFW.GLFW_KEY_F3) -> {
-                camera.position.zero()
-                camera.translate(z = -5f)
-                camera.rotation.identity()
-            }
+            keyboard.wasPressed(GLFW.GLFW_KEY_F3) -> resetCamera()
         }
 
         // Camera Translation
         when {
             // Translation on the camera pose along the x and y axes needs to be flipped for objects to appear to move
             // 'naturally'.
-            keyboard.isDown(GLFW.GLFW_KEY_W) -> camera.translate(y = -cameraMoveSpeed * delta.toFloat())
-            keyboard.isDown(GLFW.GLFW_KEY_S) -> camera.translate(y = cameraMoveSpeed * delta.toFloat())
+            keyboard.isDown(GLFW.GLFW_KEY_W) -> camera.translate(z = -cameraMoveSpeed * delta.toFloat())
+            keyboard.isDown(GLFW.GLFW_KEY_S) -> camera.translate(z = cameraMoveSpeed * delta.toFloat())
         }
         // Split up x-axis and y-axis movement so that you can move along both axes simultaneously
         when {
-            keyboard.isDown(GLFW.GLFW_KEY_A) -> camera.translate(x = cameraMoveSpeed * delta.toFloat())
-            keyboard.isDown(GLFW.GLFW_KEY_D) -> camera.translate(x = -cameraMoveSpeed * delta.toFloat())
+            keyboard.isDown(GLFW.GLFW_KEY_A) -> camera.translate(x = -cameraMoveSpeed * delta.toFloat())
+            keyboard.isDown(GLFW.GLFW_KEY_D) -> camera.translate(x = cameraMoveSpeed * delta.toFloat())
             mouse.isHeldDown(GLFW.GLFW_MOUSE_BUTTON_MIDDLE) -> camera.translate(
                 x = mouse.deltaPosition.x * delta.toFloat(),
                 y = -mouse.deltaPosition.y * delta.toFloat()
             )
         }
 
+        when {
+            keyboard.isDown(GLFW.GLFW_KEY_Q) -> camera.translate(y = cameraMoveSpeed * delta.toFloat())
+            keyboard.isDown(GLFW.GLFW_KEY_E) -> camera.translate(y = -cameraMoveSpeed * delta.toFloat())
+        }
+
         // Camera rotation
         if (mouse.isHeldDown(GLFW.GLFW_MOUSE_BUTTON_RIGHT)) camera.rotate(
-            // Moving the mouse left/right orbits anti-clockwise/clockwise around the y-axis.
-            x = mouse.deltaPosition.y * delta.toFloat() * cameraRotateSpeed,
             // Moving the mouse up/down orbits about the x-axis.
-            y = mouse.deltaPosition.x * delta.toFloat() * cameraRotateSpeed
+            x = -mouse.deltaPosition.y * delta.toFloat() * cameraRotateSpeed,
+
+            // Moving the mouse left/right orbits anti-clockwise/clockwise around the y-axis.
+            y = -mouse.deltaPosition.x * delta.toFloat() * cameraRotateSpeed
         )
 
-        when {
-            keyboard.isDown(GLFW.GLFW_KEY_Q) -> camera.rotate(z = delta.toFloat() * cameraRotateSpeed)
-            keyboard.isDown(GLFW.GLFW_KEY_E) -> camera.rotate(z = -1 * delta.toFloat() * cameraRotateSpeed)
-        }
-
-        // Camera Zoom
-        when {
-            mouse.scrollOffset.length() > 0 -> {
-                camera.translate(z = (mouse.scrollOffset.y * delta * cameraZoomSpeed).toFloat())
-            }
-            // `Ctrl` + `=`
-            keyboard.isDown(GLFW.GLFW_KEY_LEFT_CONTROL) && keyboard.wasPressed(GLFW.GLFW_KEY_EQUAL) -> {
-                camera.translate(z = delta.toFloat() * cameraZoomSpeed)
-            }
-            // `Ctrl` + `-`
-            keyboard.isDown(GLFW.GLFW_KEY_LEFT_CONTROL) && keyboard.wasPressed(GLFW.GLFW_KEY_MINUS) -> {
-                camera.translate(z = -1 * delta.toFloat() * cameraZoomSpeed)
-            }
-        }
+        // TODO: Implement zoom (moving forwards and backwards in the direction the camera is pointing.
 
         return true
     }
@@ -203,11 +214,8 @@ class GameManager : GameManagerI {
             Pair("F3:", "Reset the camera"),
             Pair("MMB:", "Pan the camera"),
             Pair("RMB:", "Rotate the camera"),
-            Pair("Mouse Wheel:", "Zoom the camera"),
-            Pair("`Ctrl` + `-`:", "Zoom the camera out"),
-            Pair("`Ctrl` + `+`:", "Zoom the camera in"),
-            Pair("Q/E:", "Roll the camera left/right"),
-            Pair("W/A/S/D:", "Pan the camera up/left/down/right")
+            Pair("Q/E:", "Move the camera up/down"),
+            Pair("W/A/S/D:", "Move the camera forward/left/backward/right")
         )
 
         for ((key, function) in controls) {
