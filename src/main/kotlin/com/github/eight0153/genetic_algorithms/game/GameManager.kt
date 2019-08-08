@@ -1,17 +1,20 @@
 package com.github.eight0153.genetic_algorithms.game
 
 import com.github.eight0153.genetic_algorithms.engine.*
+import com.github.eight0153.genetic_algorithms.engine.graphics.Colour
 import com.github.eight0153.genetic_algorithms.engine.graphics.Mesh
+import com.github.eight0153.genetic_algorithms.engine.graphics.createCubeMesh
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11.GL_LINES
+import kotlin.random.Random
 
 class GameManager : GameManagerI {
     private val frameRateLogger = FrameRateLogger()
 
     private lateinit var renderer: Renderer
-    private lateinit var gameObjects: Array<GameObject>
+    private lateinit var gameObjects: ArrayList<GameObject>
 
     private lateinit var camera: Camera
     private val cameraMoveSpeed = 20f
@@ -65,10 +68,10 @@ class GameManager : GameManagerI {
                     100.0f, 0.0f, 100.0f
                 ),
                 arrayOf(
-                    0.5f, 0.0f, 0.0f,
-                    0.0f, 0.5f, 0.0f,
-                    0.0f, 0.0f, 0.5f,
-                    0.0f, 0.5f, 0.5f
+                    0.33f, 0.65f, 0.29f,
+                    0.33f, 0.65f, 0.29f,
+                    0.33f, 0.65f, 0.29f,
+                    0.33f, 0.65f, 0.29f
                 ),
                 arrayOf(0, 1, 2, 1, 2, 3)
             )
@@ -101,24 +104,36 @@ class GameManager : GameManagerI {
                 GL_LINES
             )
         )
+        axes.shouldRender = false
 
-        gameObjects = arrayOf(cube, axes, ground)
+        gameObjects = arrayListOf(axes, ground)
+        gameObjects.addAll(Array(20) {
+            Creature(
+                createCubeMesh(
+                    Colour(
+                        Random.Default.nextFloat(),
+                        Random.Default.nextFloat(),
+                        Random.Default.nextFloat()
+                    )
+                )
+            )
+        })
         renderer = Renderer(camera)
         printInfo(windowName)
     }
 
-    fun resetCamera() {
+    private fun resetCamera() {
         camera.translation.zero()
-        camera.translate(y = 1.0f, z = 5.0f)
+        camera.translate(y = 80.0f)
         camera.rotation.zero()
-        camera.rotate(15.0f)
+        camera.rotate(90.0f)
     }
 
     override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
         when {
             keyboard.wasReleased(GLFW.GLFW_KEY_ESCAPE) -> return false
             keyboard.wasPressed(GLFW.GLFW_KEY_F1) -> frameRateLogger.toggle()
-            keyboard.wasPressed(GLFW.GLFW_KEY_F2) -> gameObjects[1].shouldRender = !gameObjects[1].shouldRender
+            keyboard.wasPressed(GLFW.GLFW_KEY_F2) -> gameObjects[0].shouldRender = !gameObjects[0].shouldRender
             keyboard.wasPressed(GLFW.GLFW_KEY_F3) -> resetCamera()
         }
 
@@ -140,8 +155,8 @@ class GameManager : GameManagerI {
         }
 
         when {
-            keyboard.isDown(GLFW.GLFW_KEY_Q) -> camera.translate(y = cameraMoveSpeed * delta.toFloat())
-            keyboard.isDown(GLFW.GLFW_KEY_E) -> camera.translate(y = -cameraMoveSpeed * delta.toFloat())
+            keyboard.isDown(GLFW.GLFW_KEY_Q) -> camera.translate(y = -cameraMoveSpeed * delta.toFloat())
+            keyboard.isDown(GLFW.GLFW_KEY_E) -> camera.translate(y = cameraMoveSpeed * delta.toFloat())
         }
 
         // Camera rotation
@@ -162,6 +177,21 @@ class GameManager : GameManagerI {
         for (gameObject in gameObjects) {
             gameObject.update(delta)
         }
+
+        gameObjects.removeIf { it is Creature && it.isDead }
+
+        // TODO: Actually replicate creatures instead of just create new ones
+        gameObjects.addAll(Array(gameObjects.filter { it is Creature && it.shouldReplicate }.size) {
+            Creature(
+                createCubeMesh(
+                    Colour(
+                        Random.Default.nextFloat(),
+                        Random.Default.nextFloat(),
+                        Random.Default.nextFloat()
+                    )
+                )
+            )
+        })
 
         frameRateLogger.update(delta)
     }
@@ -214,7 +244,7 @@ class GameManager : GameManagerI {
             Pair("F3:", "Reset the camera"),
             Pair("MMB:", "Pan the camera"),
             Pair("RMB:", "Rotate the camera"),
-            Pair("Q/E:", "Move the camera up/down"),
+            Pair("Q/E:", "Move the camera down/up"),
             Pair("W/A/S/D:", "Move the camera forward/left/backward/right")
         )
 
