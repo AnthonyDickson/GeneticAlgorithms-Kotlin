@@ -15,18 +15,18 @@ class Renderer(
         shaderProgram.createFragmentShader(Utils.loadResource("/shaders/fragment.fs"))
         shaderProgram.link()
         // These lines have to happen after linking, otherwise `projectionMatrix` would not yet be defined
-        shaderProgram.createUniform("modelMatrix")
-        shaderProgram.createUniform("viewMatrix")
-        shaderProgram.createUniform("projectionMatrix")
+        shaderProgram.createUniform("viewModel")
+        shaderProgram.createUniform("projection")
     }
 
     fun render(gameObjects: Array<GameObject>) {
         shaderProgram.bind()
-        shaderProgram.setUniform("viewMatrix", camera.viewMatrix)
-        shaderProgram.setUniform("projectionMatrix", camera.projectionMatrix)
+        shaderProgram.setUniform("projection", camera.projectionMatrix)
+        val viewMatrix = camera.viewMatrix
 
         for (gameObject in gameObjects.filter { it.shouldRender }) {
-            shaderProgram.setUniform("modelMatrix", gameObject.modelMatrix)
+            val viewModel = viewMatrix.mul(gameObject.modelMatrix)
+            shaderProgram.setUniform("viewModel", viewModel)
             gameObject.render()
         }
 
