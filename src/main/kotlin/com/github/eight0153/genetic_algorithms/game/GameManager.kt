@@ -12,52 +12,21 @@ import kotlin.random.Random
 
 class GameManager : GameManagerI {
     private val frameRateLogger = FrameRateLogger()
+    private val populationStatisticsLogger = PopulationStatisticsLogger()
 
+    private lateinit var creatures: ArrayList<Creature>
+    private val maxCreatures = 32000
+
+    private lateinit var gameObjects: List<GameObject>
     private lateinit var renderer: Renderer
-    private lateinit var gameObjects: ArrayList<GameObject>
-
     private lateinit var camera: Camera
     private val cameraMoveSpeed = 20f
+
     private val cameraRotateSpeed = 20f
-    private val cameraZoomSpeed = 10f
 
     override fun init(windowSize: Size, windowName: String) {
         camera = Camera(windowSize)
         resetCamera()
-
-        val cube = GameObject(
-            Mesh(
-                arrayOf(
-                    -0.5f, -0.5f, 0.5f,
-                    -0.5f, 0.5f, 0.5f,
-                    0.5f, -0.5f, 0.5f,
-                    0.5f, 0.5f, 0.5f,
-                    -0.5f, -0.5f, -0.5f,
-                    -0.5f, 0.5f, -0.5f,
-                    0.5f, -0.5f, -0.5f,
-                    0.5f, 0.5f, -0.5f
-                ),
-                arrayOf(
-                    0.5f, 0.0f, 0.0f,
-                    0.0f, 0.5f, 0.0f,
-                    0.0f, 0.0f, 0.5f,
-                    0.0f, 0.5f, 0.5f,
-                    0.5f, 0.0f, 0.0f,
-                    0.0f, 0.5f, 0.0f,
-                    0.0f, 0.0f, 0.5f,
-                    0.0f, 0.5f, 0.5f
-                ),
-                arrayOf(
-                    0, 1, 2, 1, 2, 3, // Front face
-                    0, 1, 4, 1, 4, 5, // Left face
-                    2, 3, 6, 3, 6, 7, // Right face
-                    1, 3, 5, 3, 5, 7, // Top face
-                    0, 2, 4, 2, 4, 6, // Bottom face
-                    4, 5, 6, 5, 6, 7  // Back face
-                )
-            )
-        )
-        cube.transform.translate(y = 0.5f)
 
         val ground = GameObject(
             Mesh(
@@ -107,7 +76,7 @@ class GameManager : GameManagerI {
         axes.shouldRender = false
 
         gameObjects = arrayListOf(axes, ground)
-        gameObjects.addAll(Array(20) {
+        creatures = ArrayList(Array(100) {
             Creature(
                 createCubeMesh(
                     Colour(
@@ -117,14 +86,15 @@ class GameManager : GameManagerI {
                     )
                 )
             )
-        })
+        }.toList())
+
         renderer = Renderer(camera)
         printInfo(windowName)
     }
 
     private fun resetCamera() {
         camera.translation.zero()
-        camera.translate(y = 80.0f)
+        camera.translate(y = 90.0f)
         camera.rotation.zero()
         camera.rotate(90.0f)
     }
@@ -178,10 +148,22 @@ class GameManager : GameManagerI {
             gameObject.update(delta)
         }
 
-        gameObjects.removeIf { it is Creature && it.isDead }
+        for (creature in creatures) {
+            creature.update(delta)
+        }
 
-        // TODO: Actually replicate creatures instead of just create new ones
-        gameObjects.addAll(Array(gameObjects.filter { it is Creature && it.shouldReplicate }.size) {
+        // TODO: Refactor creature management to own class
+        val numBirths = creatures.count { it.shouldReplicate }
+        val numDeaths = creatures.count { it.isDead }
+
+        for (creature in creatures.filter { it.isDead }) {
+            creatures.remove(creature)
+            creature.cleanup()
+        }
+
+        val numToAdd = if (creatures.size + numBirths > maxCreatures) maxCreatures - creatures.size else numBirths
+
+        creatures.addAll(Array(numToAdd) {
             Creature(
                 createCubeMesh(
                     Colour(
@@ -193,16 +175,22 @@ class GameManager : GameManagerI {
             )
         })
 
+        populationStatisticsLogger.update(delta, creatures.size, numBirths, numDeaths)
         frameRateLogger.update(delta)
     }
 
     override fun render() {
         renderer.render(gameObjects)
+        renderer.render(creatures)
     }
 
     override fun cleanup() {
         for (gameObject in gameObjects) {
             gameObject.cleanup()
+        }
+
+        for (creature in creatures) {
+            creature.cleanup()
         }
 
         renderer.cleanup()

@@ -20,7 +20,7 @@ class Renderer(
         shaderProgram.createUniform("projection")
     }
 
-    fun render(gameObjects: ArrayList<GameObject>) {
+    fun render(gameObjects: List<GameObject>) {
         shaderProgram.bind()
         shaderProgram.setUniform("projection", camera.projectionMatrix)
         val viewMatrix = camera.viewMatrix

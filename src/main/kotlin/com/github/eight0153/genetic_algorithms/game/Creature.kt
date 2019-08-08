@@ -13,13 +13,14 @@ class Creature(mesh: Mesh = createCubeMesh(), transform: Transform = Transform()
         private val random = Random(42)
     }
 
-    val replicationChance = 0.013
+    val replicationChance = 0.015
 
     val deathChance = 0.01
-    val speed = random.nextDouble(0.1, 4.0).toFloat()
+    val speed = random.nextDouble(1.0, 4.0).toFloat()
     var isDead = false
     var shouldReplicate: Boolean = false
     private val velocity = Vector3f()
+    private var age = 0.0
 
     init {
         // TODO: Add bounds to init parameters
@@ -30,8 +31,11 @@ class Creature(mesh: Mesh = createCubeMesh(), transform: Transform = Transform()
         )
     }
 
+    private val lifeExpectancy = 40
+
     override fun update(delta: Double) {
         super.update(delta)
+        age += delta
         shouldReplicate = false
 
         if (!isDead) {
@@ -58,9 +62,9 @@ class Creature(mesh: Mesh = createCubeMesh(), transform: Transform = Transform()
                 transform.translation.z > 50.0f -> transform.translation.z = 50.0f
             }
 
-            if (random.nextFloat() < deathChance * delta) {
+            if (random.nextFloat() < deathChance * delta * age / lifeExpectancy) {
                 isDead = true
-            } else if (random.nextFloat() < replicationChance * delta) {
+            } else if (random.nextFloat() < replicationChance * delta * lifeExpectancy / (0.1 * age + lifeExpectancy)) {
                 shouldReplicate = true
             }
         }
