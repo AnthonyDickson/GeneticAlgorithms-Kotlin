@@ -5,7 +5,7 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
-class Mesh(positions: Array<Float>, colours: Array<Float>, indices: Array<Int>) {
+class Mesh(positions: Array<Float>, colours: Array<Float>, indices: Array<Int>, private val mode: Int = GL_TRIANGLES) {
     val vaoId: Int
     private val vboId: Int
     private val colourVboId: Int
@@ -69,7 +69,7 @@ class Mesh(positions: Array<Float>, colours: Array<Float>, indices: Array<Int>) 
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
 
-        glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0)
+        glDrawElements(mode, vertexCount, GL_UNSIGNED_INT, 0)
 
         // Restore state
         glDisableVertexAttribArray(0)
