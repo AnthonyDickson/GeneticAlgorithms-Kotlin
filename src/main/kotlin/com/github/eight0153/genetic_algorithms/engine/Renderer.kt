@@ -12,17 +12,20 @@ class Renderer(
         ShaderProgram()
 
     init {
-        shaderProgram.createVertexShader(Utils.loadResource("shaders/vertex.vs"))
+        shaderProgram.createVertexShader(Utils.loadResource("/shaders/vertex.vs"))
         shaderProgram.createFragmentShader(Utils.loadResource("/shaders/fragment.fs"))
         shaderProgram.link()
         // These lines have to happen after linking, otherwise `projectionMatrix` would not yet be defined
         shaderProgram.createUniform("viewModel")
         shaderProgram.createUniform("projection")
+        shaderProgram.createUniform("textureSampler")
     }
 
     fun render(gameObjects: List<GameObject>) {
         shaderProgram.bind()
         shaderProgram.setUniform("projection", camera.projectionMatrix)
+        shaderProgram.setUniform("textureSampler", 0)
+
         val viewMatrix = camera.viewMatrix
         val viewModel = Matrix4f()
 

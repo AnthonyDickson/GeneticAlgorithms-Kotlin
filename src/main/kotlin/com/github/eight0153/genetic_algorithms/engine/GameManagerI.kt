@@ -22,7 +22,7 @@ interface GameManagerI {
      * Initialisation can be done in a constructor but anything relying on OpenGL should be deferred to this
      * method so that the game [Engine] can setup the window and initialise OpenGL beforehand.
      */
-    fun init(windowSize: Size, windowName: String)
+    fun init(windowSize: Size, windowName: String, worldSize: Size = Size(100, 0, 100))
 
     /**
      * Handle [keyboard] and [mouse] input and return true if program should continue execution or false if the

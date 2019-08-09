@@ -3,12 +3,11 @@ package com.github.eight0153.genetic_algorithms.game
 import com.github.eight0153.genetic_algorithms.engine.GameObject
 import com.github.eight0153.genetic_algorithms.engine.Transform
 import com.github.eight0153.genetic_algorithms.engine.graphics.Mesh
-import com.github.eight0153.genetic_algorithms.engine.graphics.createCubeMesh
 import org.joml.Vector3f
 import kotlin.random.Random
 
 // TODO: Add genes and other typical genetic operators
-class Creature(mesh: Mesh = createCubeMesh(), transform: Transform = Transform()) : GameObject(mesh, transform) {
+class Creature(mesh: Mesh, transform: Transform = Transform()) : GameObject(mesh, transform) {
     companion object {
         private val random = Random(42)
     }

@@ -23,7 +23,7 @@ class Transform(
         rotate(rotation.x, rotation.y, rotation.z)
     }
 
-    fun translate(x: Float = 0f, y: Float = 0f, z: Float = 0f) {
+    fun translate(x: Float = 0.0f, y: Float = 0.0f, z: Float = 0.0f) {
         translation.add(x, y, z)
     }
 

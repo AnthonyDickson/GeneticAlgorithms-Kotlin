@@ -1,92 +1,44 @@
 package com.github.eight0153.genetic_algorithms.game
 
 import com.github.eight0153.genetic_algorithms.engine.*
-import com.github.eight0153.genetic_algorithms.engine.graphics.Colour
-import com.github.eight0153.genetic_algorithms.engine.graphics.Mesh
-import com.github.eight0153.genetic_algorithms.engine.graphics.createCubeMesh
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL11.GL_LINES
-import kotlin.random.Random
 
+// TODO: Add creatures back in
 class GameManager : GameManagerI {
     private val frameRateLogger = FrameRateLogger()
-    private val populationStatisticsLogger = PopulationStatisticsLogger()
-
-    private lateinit var creatures: ArrayList<Creature>
-    private val maxCreatures = 32000
 
     private lateinit var gameObjects: List<GameObject>
     private lateinit var renderer: Renderer
     private lateinit var camera: Camera
-    private val cameraMoveSpeed = 20f
 
+    private val cameraMoveSpeed = 20f
     private val cameraRotateSpeed = 20f
 
-    override fun init(windowSize: Size, windowName: String) {
+    override fun init(
+        windowSize: Size,
+        windowName: String,
+        worldSize: Size
+    ) {
         camera = Camera(windowSize)
         resetCamera()
 
-        val ground = GameObject(
-            Mesh(
-                arrayOf(
-                    0.0f, 0.0f, 0.0f,
-                    100.0f, 0.0f, 0.0f,
-                    0.0f, 0.0f, 100.0f,
-                    100.0f, 0.0f, 100.0f
-                ),
-                arrayOf(
-                    0.33f, 0.65f, 0.29f,
-                    0.33f, 0.65f, 0.29f,
-                    0.33f, 0.65f, 0.29f,
-                    0.33f, 0.65f, 0.29f
-                ),
-                arrayOf(0, 1, 2, 1, 2, 3)
-            )
-        )
-        ground.transform.translate(-50.0f, 0.0f, -50.0f)
+        gameObjects = ArrayList()
 
-        val axes = GameObject(
-            Mesh(
-                // Duplicate origin point so that colour is uniform for the entire line and we get a:
-                // - red line for the x-axis
-                // - green line for the y-axis
-                // - blue line for the z-axis
-                arrayOf(
-                    0.0f, 0.0f, 0.0f,
-                    100.0f, 0.0f, 0.0f,
-                    0.0f, 0.0f, 0.0f,
-                    0.0f, 100.0f, 0.0f,
-                    0.0f, 0.0f, 0.0f,
-                    0.0f, 0.0f, 100.0f
-                ),
-                arrayOf(
-                    0.5f, 0.0f, 0.0f,
-                    0.5f, 0.0f, 0.0f,
-                    0.0f, 0.5f, 0.0f,
-                    0.0f, 0.5f, 0.0f,
-                    0.0f, 0.0f, 0.5f,
-                    0.0f, 0.0f, 0.5f
-                ),
-                arrayOf(0, 1, 2, 3, 4, 5),
-                GL_LINES
-            )
-        )
-        axes.shouldRender = false
+        val grassBlockMesh = GrassBlock.createMesh()
 
-        gameObjects = arrayListOf(axes, ground)
-        creatures = ArrayList(Array(100) {
-            Creature(
-                createCubeMesh(
-                    Colour(
-                        Random.Default.nextFloat(),
-                        Random.Default.nextFloat(),
-                        Random.Default.nextFloat()
-                    )
+        for (row in 0..worldSize.width) {
+            for (col in 0..worldSize.depth) {
+                val block = GameObject(grassBlockMesh)
+                block.transform.translate(
+                    row.toFloat() - worldSize.width / 2.0f,
+                    -0.5f,
+                    col.toFloat() - worldSize.depth / 2.0f
                 )
-            )
-        }.toList())
+                (gameObjects as ArrayList<GameObject>).add(block)
+            }
+        }
 
         renderer = Renderer(camera)
         printInfo(windowName)
@@ -94,17 +46,15 @@ class GameManager : GameManagerI {
 
     private fun resetCamera() {
         camera.translation.zero()
-        camera.translate(y = 90.0f)
+        camera.translate(y = 4.0f)
         camera.rotation.zero()
-        camera.rotate(90.0f)
     }
 
     override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
         when {
             keyboard.wasReleased(GLFW.GLFW_KEY_ESCAPE) -> return false
             keyboard.wasPressed(GLFW.GLFW_KEY_F1) -> frameRateLogger.toggle()
-            keyboard.wasPressed(GLFW.GLFW_KEY_F2) -> gameObjects[0].shouldRender = !gameObjects[0].shouldRender
-            keyboard.wasPressed(GLFW.GLFW_KEY_F3) -> resetCamera()
+            keyboard.wasPressed(GLFW.GLFW_KEY_F2) -> resetCamera()
         }
 
         // Camera Translation
@@ -125,8 +75,12 @@ class GameManager : GameManagerI {
         }
 
         when {
-            keyboard.isDown(GLFW.GLFW_KEY_Q) -> camera.translate(y = -cameraMoveSpeed * delta.toFloat())
-            keyboard.isDown(GLFW.GLFW_KEY_E) -> camera.translate(y = cameraMoveSpeed * delta.toFloat())
+            keyboard.isDown(GLFW.GLFW_KEY_Q) || keyboard.isDown(GLFW.GLFW_KEY_LEFT_SHIFT) -> {
+                camera.translate(y = -cameraMoveSpeed * delta.toFloat())
+            }
+            keyboard.isDown(GLFW.GLFW_KEY_E) || keyboard.isDown(GLFW.GLFW_KEY_SPACE) -> {
+                camera.translate(y = cameraMoveSpeed * delta.toFloat())
+            }
         }
 
         // Camera rotation
@@ -147,50 +101,16 @@ class GameManager : GameManagerI {
         for (gameObject in gameObjects) {
             gameObject.update(delta)
         }
-
-        for (creature in creatures) {
-            creature.update(delta)
-        }
-
-        // TODO: Refactor creature management to own class
-        val numBirths = creatures.count { it.shouldReplicate }
-        val numDeaths = creatures.count { it.isDead }
-
-        for (creature in creatures.filter { it.isDead }) {
-            creatures.remove(creature)
-            creature.cleanup()
-        }
-
-        val numToAdd = if (creatures.size + numBirths > maxCreatures) maxCreatures - creatures.size else numBirths
-
-        creatures.addAll(Array(numToAdd) {
-            Creature(
-                createCubeMesh(
-                    Colour(
-                        Random.Default.nextFloat(),
-                        Random.Default.nextFloat(),
-                        Random.Default.nextFloat()
-                    )
-                )
-            )
-        })
-
-        populationStatisticsLogger.update(delta, creatures.size, numBirths, numDeaths)
         frameRateLogger.update(delta)
     }
 
     override fun render() {
         renderer.render(gameObjects)
-        renderer.render(creatures)
     }
 
     override fun cleanup() {
         for (gameObject in gameObjects) {
             gameObject.cleanup()
-        }
-
-        for (creature in creatures) {
-            creature.cleanup()
         }
 
         renderer.cleanup()
@@ -228,11 +148,11 @@ class GameManager : GameManagerI {
 
         val controls = mapOf(
             Pair("F1:", "Toggle frame rate logging"),
-            Pair("F2:", "Toggle XYZ axes"),
-            Pair("F3:", "Reset the camera"),
+            Pair("F2:", "Reset the camera"),
             Pair("MMB:", "Pan the camera"),
             Pair("RMB:", "Rotate the camera"),
-            Pair("Q/E:", "Move the camera down/up"),
+            Pair("E/SPACE:", "Move the camera up"),
+            Pair("Q/SHIFT:", "Move the camera down"),
             Pair("W/A/S/D:", "Move the camera forward/left/backward/right")
         )
 

@@ -1,9 +1,11 @@
 #version 330
 
-in vec3 vertexColour;
+in  vec2 outTextureCoordinates;
 out vec4 fragmentColour;
+
+uniform sampler2D textureSampler;
 
 void main()
 {
-    fragmentColour = vec4(vertexColour, 1.0);
+    fragmentColour = texture(textureSampler, outTextureCoordinates);
 }

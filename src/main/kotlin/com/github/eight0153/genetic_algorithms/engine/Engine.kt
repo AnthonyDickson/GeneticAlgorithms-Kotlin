@@ -70,7 +70,7 @@ class Engine(
         GL.createCapabilities()
 
         glEnable(GL_DEPTH_TEST)
-
+        glEnable(GL_CULL_FACE)
         // Set the clear color
         glClearColor(backgroundColour.red, backgroundColour.green, backgroundColour.blue, backgroundColour.alpha)
 
