@@ -1,15 +1,16 @@
 package com.github.eight0153.genetic_algorithms.engine.graphics
 
+import com.github.eight0153.genetic_algorithms.engine.Utils
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.stb.STBImage.*
 import org.lwjgl.system.MemoryStack
 
 
-class Texture(fileName: String) {
-    val id: Int
+class Texture(resourceID: String) {
+    private val id: Int
 
     init {
-        id = loadTexture(fileName)
+        id = loadTexture(Utils.getResourcePath(resourceID))
     }
 
     fun bind() {

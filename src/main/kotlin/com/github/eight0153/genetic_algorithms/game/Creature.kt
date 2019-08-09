@@ -10,6 +10,10 @@ import kotlin.random.Random
 class Creature(mesh: Mesh, transform: Transform = Transform()) : GameObject(mesh, transform) {
     companion object {
         private val random = Random(42)
+
+        fun createMesh(): Mesh {
+            return Mesh.load("/models/cube.obj")
+        }
     }
 
     val replicationChance = 0.015
@@ -24,9 +28,9 @@ class Creature(mesh: Mesh, transform: Transform = Transform()) : GameObject(mesh
     init {
         // TODO: Add bounds to init parameters
         transform.translate(
-            (random.nextInt(-30, 30) * speed),
+            (random.nextInt(-31, 31) * speed),
             0.5f,
-            (random.nextInt(-30, 30) * speed)
+            (random.nextInt(-31, 31) * speed)
         )
     }
 
@@ -55,10 +59,10 @@ class Creature(mesh: Mesh, transform: Transform = Transform()) : GameObject(mesh
 
             when {
                 // TODO: Get rid of these magic numbers
-                transform.translation.x < -50.0f -> transform.translation.x = -50.0f
-                transform.translation.x > 50.0f -> transform.translation.x = 50.0f
-                transform.translation.z < -50.0f -> transform.translation.z = -50.0f
-                transform.translation.z > 50.0f -> transform.translation.z = 50.0f
+                transform.translation.x < -31.0f -> transform.translation.x = -31.0f
+                transform.translation.x > 31.0f -> transform.translation.x = 31.0f
+                transform.translation.z < -31.0f -> transform.translation.z = -31.0f
+                transform.translation.z > 31.0f -> transform.translation.z = 31.0f
             }
 
             if (random.nextFloat() < deathChance * delta * age / lifeExpectancy) {

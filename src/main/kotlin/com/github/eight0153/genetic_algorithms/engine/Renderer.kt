@@ -19,6 +19,9 @@ class Renderer(
         shaderProgram.createUniform("viewModel")
         shaderProgram.createUniform("projection")
         shaderProgram.createUniform("textureSampler")
+        // Create uniform for default colour and the flag that controls it
+        shaderProgram.createUniform("colour")
+        shaderProgram.createUniform("useColour")
     }
 
     fun render(gameObjects: List<GameObject>) {
@@ -32,6 +35,9 @@ class Renderer(
         for (gameObject in gameObjects.filter { it.shouldRender }) {
             viewMatrix.mul(gameObject.modelMatrix, viewModel)
             shaderProgram.setUniform("viewModel", viewModel)
+            shaderProgram.setUniform("colour", gameObject.colour)
+            shaderProgram.setUniform("useColour", if (gameObject.isTextured) 0 else 1)
+
             gameObject.render()
         }
 

@@ -2,6 +2,7 @@ package com.github.eight0153.genetic_algorithms.engine.graphics
 
 
 import org.joml.Matrix4f
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.system.MemoryStack
 
@@ -34,16 +35,23 @@ constructor() {
         uniforms[uniformName] = uniformLocation
     }
 
+    fun setUniform(uniformName: String, value: Int) {
+        glUniform1i(uniforms[uniformName]!!, value)
+    }
+
+    fun setUniform(uniformName: String, value: Vector3f) {
+        MemoryStack.stackPush().use {
+            val fb = it.mallocFloat(3)
+            value.get(fb)
+            glUniform3fv(uniforms[uniformName]!!, fb)
+        }
+    }
     fun setUniform(uniformName: String, value: Matrix4f) {
         MemoryStack.stackPush().use {
             val fb = it.mallocFloat(16)
             value.get(fb)
             glUniformMatrix4fv(uniforms[uniformName]!!, false, fb)
         }
-    }
-
-    fun setUniform(uniformName: String, value: Int) {
-        glUniform1i(uniforms[uniformName]!!, value)
     }
 
     fun createVertexShader(shaderCode: String) {

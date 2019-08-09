@@ -3,6 +3,7 @@ package com.github.eight0153.genetic_algorithms.game
 import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
+import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 
 // TODO: Add creatures back in
@@ -26,11 +27,9 @@ class GameManager : GameManagerI {
 
         gameObjects = ArrayList()
 
-        val grassBlockMesh = GrassBlock.createMesh()
-
-        for (row in 0..worldSize.width) {
-            for (col in 0..worldSize.depth) {
-                val block = GameObject(grassBlockMesh)
+        for (row in 0 until worldSize.width) {
+            for (col in 0 until worldSize.depth) {
+                val block = GrassBlockFactory.create()
                 block.transform.translate(
                     row.toFloat() - worldSize.width / 2.0f,
                     -0.5f,
@@ -39,6 +38,12 @@ class GameManager : GameManagerI {
                 (gameObjects as ArrayList<GameObject>).add(block)
             }
         }
+
+        val creatureMesh = Creature.createMesh()
+        creatureMesh.colour = Vector3f(0.8f, 0.1f, 0.1f)
+        val creature = Creature(creatureMesh)
+
+        (gameObjects as ArrayList<GameObject>).add(creature)
 
         renderer = Renderer(camera)
         printInfo(windowName)
