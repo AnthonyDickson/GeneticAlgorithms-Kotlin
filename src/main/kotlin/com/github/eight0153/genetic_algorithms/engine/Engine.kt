@@ -1,9 +1,9 @@
 package com.github.eight0153.genetic_algorithms.engine
 
-import com.github.eight0153.genetic_algorithms.engine.graphics.Colour
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.joml.Vector2f
+import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
@@ -18,7 +18,7 @@ class Engine(
     windowSize: Vector2f = Vector2f(800.0f, 600.0f),
     /** How often to update the display. For example, 60 fps is 1/60 seconds. */
     private val targetFrameTime: Float = 1 / 60f,
-    backgroundColour: Colour = Colour()
+    backgroundColour: Vector3f = Vector3f()
 ) {
     /** An error callback that will print GLFW error messages to System.err. */
     private val errorCallback: GLFWErrorCallback? = glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err))
@@ -71,7 +71,7 @@ class Engine(
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
         // Set the clear color
-        glClearColor(backgroundColour.red, backgroundColour.green, backgroundColour.blue, backgroundColour.alpha)
+        glClearColor(backgroundColour.x, backgroundColour.y, backgroundColour.z, 1.0f)
 
         keyboard = KeyboardInputHandler(window)
         mouse = MouseInputHandler(window)
