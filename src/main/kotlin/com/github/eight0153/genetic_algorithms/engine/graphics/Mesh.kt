@@ -11,7 +11,7 @@ import java.util.*
 
 
 class Mesh(
-    vertices: FloatArray,
+    positions: FloatArray,
     textureCoordinates: FloatArray,
     normals: FloatArray,
     indices: IntArray,
@@ -25,7 +25,7 @@ class Mesh(
     val isTextured: Boolean get() = texture != null
 
     init {
-        var verticesBuffer: FloatBuffer? = null
+        var positionBuffer: FloatBuffer? = null
         var textureCoordinatesBuffer: FloatBuffer? = null
         var normalsBuffer: FloatBuffer? = null
         var indicesBuffer: IntBuffer? = null
@@ -38,15 +38,15 @@ class Mesh(
             vaoId = glGenVertexArrays()
             glBindVertexArray(vaoId)
 
-            // Create the vertex buffer object (VBO)
+            // Positions vertex buffer object (VBO)
             var vboId = glGenBuffers()
             vboIds.add(vboId)
             // Allocate off-heap memory that the native code can access
-            verticesBuffer = MemoryUtil.memAllocFloat(vertices.size)
-            verticesBuffer.put(vertices).flip()
+            positionBuffer = MemoryUtil.memAllocFloat(positions.size)
+            positionBuffer.put(positions).flip()
 
             glBindBuffer(GL_ARRAY_BUFFER, vboId)
-            glBufferData(GL_ARRAY_BUFFER, verticesBuffer!!, GL_STATIC_DRAW)
+            glBufferData(GL_ARRAY_BUFFER, positionBuffer!!, GL_STATIC_DRAW)
             // 3 for 3D coordinates
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0)
 
@@ -86,7 +86,7 @@ class Mesh(
             glBindVertexArray(0)
         } finally {
             // Have to manually dealloc off-heap memory
-            MemoryUtil.memFree(verticesBuffer)
+            MemoryUtil.memFree(positionBuffer)
             MemoryUtil.memFree(textureCoordinatesBuffer)
             MemoryUtil.memFree(normalsBuffer)
             MemoryUtil.memFree(indicesBuffer)
@@ -128,7 +128,7 @@ class Mesh(
         @Throws(Exception::class)
         fun load(resourceID: String): Mesh {
             val obj = Utils.loadResource(resourceID)
-            val vertices = ArrayList<Vector3f>()
+            val positions = ArrayList<Vector3f>()
             val textures = ArrayList<Vector2f>()
             val normals = ArrayList<Vector3f>()
             val faces = ArrayList<Face>()
@@ -136,9 +136,9 @@ class Mesh(
             for (line in obj.lines()) {
                 val tokens = line.split(" ")
                 when (tokens[0]) {
-                    // Vertex
+                    // Vertex position
                     "v" -> {
-                        vertices.add(
+                        positions.add(
                             Vector3f(
                                 tokens[1].toFloat(),
                                 tokens[2].toFloat(),
@@ -170,7 +170,7 @@ class Mesh(
                 }
             }
 
-            return reorderLists(vertices, textures, normals, faces)
+            return reorderLists(positions, textures, normals, faces)
         }
 
         private fun reorderLists(
@@ -179,14 +179,14 @@ class Mesh(
         ): Mesh {
             val outIndices = ArrayList<Int>()
             // Create position array in the order it has been declared
-            val outVertices = FloatArray(vertices.size * 3)
+            val outPositions = FloatArray(vertices.size * 3)
             val outTextureCoordinates = FloatArray(vertices.size * 2)
             val outNormals = FloatArray(vertices.size * 3)
 
             for ((i, vertex) in vertices.withIndex()) {
-                outVertices[i * 3] = vertex.x
-                outVertices[i * 3 + 1] = vertex.y
-                outVertices[i * 3 + 2] = vertex.z
+                outPositions[i * 3] = vertex.x
+                outPositions[i * 3 + 1] = vertex.y
+                outPositions[i * 3 + 2] = vertex.z
             }
 
             for (face in faces) {
@@ -199,7 +199,7 @@ class Mesh(
                 }
             }
 
-            return Mesh(outVertices, outTextureCoordinates, outNormals, outIndices.toIntArray())
+            return Mesh(outPositions, outTextureCoordinates, outNormals, outIndices.toIntArray())
         }
 
         private fun processFaceVertex(
@@ -213,34 +213,34 @@ class Mesh(
         ) {
 
             // Set index for vertex coordinates
-            val vertexIndex = indexGroups.indexPosition
-            outIndices.add(vertexIndex)
+            val positionIndex = indexGroups.positionIndex
+            outIndices.add(positionIndex)
 
             // Reorder texture coordinates
-            if (indexGroups.indexTextureCoordinate >= 0) {
-                val textureCoordinate = textureCoordinates[indexGroups.indexTextureCoordinate]
-                outTextureCoordinates[vertexIndex * 2] = textureCoordinate.x
-                outTextureCoordinates[vertexIndex * 2 + 1] = 1 - textureCoordinate.y
+            if (indexGroups.textureCoordinatesIndex >= 0) {
+                val textureCoordinate = textureCoordinates[indexGroups.textureCoordinatesIndex]
+                outTextureCoordinates[positionIndex * 2] = textureCoordinate.x
+                outTextureCoordinates[positionIndex * 2 + 1] = 1 - textureCoordinate.y
             }
 
-            if (indexGroups.indexNormal >= 0) {
+            if (indexGroups.normalIndex >= 0) {
                 // Reorder normals
-                val normal = normals[indexGroups.indexNormal]
-                outNormals[vertexIndex * 3] = normal.x
-                outNormals[vertexIndex * 3 + 1] = normal.y
-                outNormals[vertexIndex * 3 + 2] = normal.z
+                val normal = normals[indexGroups.normalIndex]
+                outNormals[positionIndex * 3] = normal.x
+                outNormals[positionIndex * 3 + 1] = normal.y
+                outNormals[positionIndex * 3 + 2] = normal.z
             }
         }
 
         private class IndexGroup {
-            var indexPosition: Int = 0
-            var indexTextureCoordinate: Int = 0
-            var indexNormal: Int = 0
+            var positionIndex: Int = 0
+            var textureCoordinatesIndex: Int = 0
+            var normalIndex: Int = 0
 
             init {
-                indexPosition = NO_VALUE
-                indexTextureCoordinate = NO_VALUE
-                indexNormal = NO_VALUE
+                positionIndex = NO_VALUE
+                textureCoordinatesIndex = NO_VALUE
+                normalIndex = NO_VALUE
             }
 
             companion object {
@@ -272,17 +272,17 @@ class Mesh(
 
                 val lineTokens = line.split("/")
                 val length = lineTokens.size
-                indexGroup.indexPosition = lineTokens[0].toInt() - 1
+                indexGroup.positionIndex = lineTokens[0].toInt() - 1
 
                 if (length > 1) {
-                    indexGroup.indexTextureCoordinate = when {
+                    indexGroup.textureCoordinatesIndex = when {
                         // It can be empty if the obj does not define texture coordinates
                         lineTokens[1].isNotEmpty() -> lineTokens[1].toInt() - 1
                         else -> IndexGroup.NO_VALUE
                     }
 
                     if (length > 2) {
-                        indexGroup.indexNormal = lineTokens[2].toInt() - 1
+                        indexGroup.normalIndex = lineTokens[2].toInt() - 1
                     }
                 }
 
