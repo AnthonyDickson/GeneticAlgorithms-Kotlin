@@ -1,11 +1,12 @@
 package com.github.eight0153.genetic_algorithms.engine
 
 import org.joml.Matrix4f
+import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Camera(windowSize: Size) {
+class Camera(windowSize: Vector2f, private val bounds: Bounds3D) {
     private val fieldOfView = Math.toRadians(60.0).toFloat()
     private val zNear = 0.01f
     private val zFar = 1000f
@@ -23,7 +24,7 @@ class Camera(windowSize: Size) {
     val projectionMatrix: Matrix4f
 
     init {
-        val aspectRatio = windowSize.width.toFloat() / windowSize.height
+        val aspectRatio = windowSize.x / windowSize.y
         projectionMatrix = Matrix4f().perspective(fieldOfView, aspectRatio, zNear, zFar)
     }
 
@@ -38,6 +39,8 @@ class Camera(windowSize: Size) {
         }
 
         translation.y += y
+
+        bounds.clip(translation)
     }
 
     fun rotate(x: Float = 0.0f, y: Float = 0.0f, z: Float = 0.0f) {

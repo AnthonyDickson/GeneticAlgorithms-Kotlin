@@ -3,47 +3,61 @@ package com.github.eight0153.genetic_algorithms.game
 import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
+import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 
-// TODO: Add creatures back in
 class GameManager : GameManagerI {
     private val frameRateLogger = FrameRateLogger()
 
-    private lateinit var gameObjects: List<GameObject>
-    private lateinit var renderer: Renderer
+    private var gameObjects = ArrayList<GameObject>()
+    private var gameLogicManagers = ArrayList<GameLogicManagerI>()
+
     private lateinit var camera: Camera
+    private lateinit var renderer: Renderer
+    private lateinit var worldBounds: Bounds3D
 
     private val cameraMoveSpeed = 20f
     private val cameraRotateSpeed = 20f
 
     override fun init(
-        windowSize: Size,
+        windowSize: Vector2f,
         windowName: String,
-        worldSize: Size
+        worldSize: Vector3f
     ) {
-        camera = Camera(windowSize)
+        val minBounds = Vector3f(
+            -0.5f * worldSize.x,
+            0.0f,
+            -0.5f * worldSize.z
+        )
+
+        // Minus one from max bounds to prevent off-by-one error in bounds clipping
+        val maxBounds = Vector3f(
+            0.5f * worldSize.x - 1,
+            worldSize.y - 1,
+            0.5f * worldSize.z - 1
+        )
+
+        worldBounds = Bounds3D(minBounds, maxBounds)
+
+        camera = Camera(windowSize, worldBounds)
         resetCamera()
 
         gameObjects = ArrayList()
 
-        for (row in 0 until worldSize.width) {
-            for (col in 0 until worldSize.depth) {
+        for (row in 0 until worldSize.x.toInt()) {
+            for (col in 0 until worldSize.z.toInt()) {
                 val block = GrassBlockFactory.create()
                 block.transform.translate(
-                    row.toFloat() - worldSize.width / 2.0f,
-                    -0.5f,
-                    col.toFloat() - worldSize.depth / 2.0f
+                    minBounds.x + row.toFloat(),
+                    -1.0f,
+                    minBounds.z + col.toFloat()
                 )
-                (gameObjects as ArrayList<GameObject>).add(block)
+                gameObjects.add(block)
             }
         }
 
-        val creatureMesh = Creature.createMesh()
-        creatureMesh.colour = Vector3f(0.8f, 0.1f, 0.1f)
-        val creature = Creature(creatureMesh)
-
-        (gameObjects as ArrayList<GameObject>).add(creature)
+        gameLogicManagers.add(CreatureManager(worldBounds))
 
         renderer = Renderer(camera)
         printInfo(windowName)
@@ -99,25 +113,32 @@ class GameManager : GameManagerI {
 
         // TODO: Implement zoom (moving forwards and backwards in the direction the camera is pointing.
 
+
+        for (gameLogicManager in gameLogicManagers) {
+            val shouldContinue = gameLogicManager.handleInput(delta, keyboard, mouse)
+
+            if (!shouldContinue) {
+                return false
+            }
+        }
+
         return true
     }
 
     override fun update(delta: Double) {
-        for (gameObject in gameObjects) {
-            gameObject.update(delta)
-        }
+        gameObjects.forEach { it.update(delta) }
+        gameLogicManagers.forEach { it.update(delta) }
         frameRateLogger.update(delta)
     }
 
     override fun render() {
         renderer.render(gameObjects)
+        gameLogicManagers.forEach { it.render(renderer) }
     }
 
     override fun cleanup() {
-        for (gameObject in gameObjects) {
-            gameObject.cleanup()
-        }
-
+        gameObjects.forEach { it.cleanup() }
+        gameLogicManagers.forEach { it.cleanup() }
         renderer.cleanup()
     }
 
@@ -133,10 +154,9 @@ class GameManager : GameManagerI {
 
         // Print the info text and center it.
         val infoMessages = arrayOf(
-            "This just renders a cube at this point.",
-            "Nothing too interesting.",
-            "I know, the title is bit of a let down, isn't it?",
-            "But at least there is this sort of fancy text formatting, right??"
+            "There are things that move around on the screen.",
+            "Sometimes they die, sometimes they reproduce.",
+            "You can fly the camera around and pretend you're superman."
         )
 
         for (message in infoMessages) {
@@ -149,17 +169,19 @@ class GameManager : GameManagerI {
         println(header)
         println("-".repeat(header.length))
 
-        val spacingFormat = "%-15s %s"
+        val spacingFormat = "%-8s - %s"
 
-        val controls = mapOf(
-            Pair("F1:", "Toggle frame rate logging"),
-            Pair("F2:", "Reset the camera"),
-            Pair("MMB:", "Pan the camera"),
-            Pair("RMB:", "Rotate the camera"),
-            Pair("E/SPACE:", "Move the camera up"),
-            Pair("Q/SHIFT:", "Move the camera down"),
-            Pair("W/A/S/D:", "Move the camera forward/left/backward/right")
+        val controls = mutableMapOf(
+            Pair("F1", "Toggle frame rate logging"),
+            Pair("F2", "Reset the camera"),
+            Pair("MMB", "Pan the camera"),
+            Pair("RMB", "Rotate the camera"),
+            Pair("E/SPACE", "Move the camera up"),
+            Pair("Q/SHIFT", "Move the camera down"),
+            Pair("W/A/S/D", "Move the camera forward/left/backward/right")
         )
+
+        gameLogicManagers.forEach { controls.putAll(it.controls) }
 
         for ((key, function) in controls) {
             println(spacingFormat.format(key, function))

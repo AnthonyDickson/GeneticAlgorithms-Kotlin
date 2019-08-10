@@ -2,6 +2,8 @@ package com.github.eight0153.genetic_algorithms.engine
 
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
+import org.joml.Vector2f
+import org.joml.Vector3f
 
 /**
  * The interface for game manager.
@@ -22,7 +24,7 @@ interface GameManagerI {
      * Initialisation can be done in a constructor but anything relying on OpenGL should be deferred to this
      * method so that the game [Engine] can setup the window and initialise OpenGL beforehand.
      */
-    fun init(windowSize: Size, windowName: String, worldSize: Size = Size(64, 0, 64))
+    fun init(windowSize: Vector2f, windowName: String, worldSize: Vector3f = Vector3f(64.0f, 64.0f, 64.0f))
 
     /**
      * Handle [keyboard] and [mouse] input and return true if program should continue execution or false if the

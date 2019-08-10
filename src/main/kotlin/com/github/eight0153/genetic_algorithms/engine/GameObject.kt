@@ -8,8 +8,8 @@ open class GameObject(private val mesh: Mesh, val transform: Transform = Transfo
     val modelMatrix: Matrix4f get() = transform.transformMatrix
     var shouldRender = true
 
-    val isTextured: Boolean get() = mesh.isTextured
-    val colour: Vector3f get() = mesh.colour
+    open val isTextured: Boolean get() = mesh.isTextured
+    open val colour: Vector3f get() = mesh.colour
 
     open fun render() {
         mesh.render()
@@ -17,7 +17,5 @@ open class GameObject(private val mesh: Mesh, val transform: Transform = Transfo
 
     open fun update(delta: Double) {}
 
-    open fun cleanup() {
-        mesh.cleanup()
-    }
+    open fun cleanup() {}
 }

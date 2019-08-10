@@ -3,20 +3,19 @@ package com.github.eight0153.genetic_algorithms.engine
 import com.github.eight0153.genetic_algorithms.engine.graphics.Colour
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
+import org.joml.Vector2f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil.NULL
+import kotlin.math.roundToInt
 
 class Engine(
     private val gameManager: GameManagerI,
     windowName: String,
     /** The width and height of the window in pixels. */
-    windowSize: Size = Size(
-        800,
-        600
-    ),
+    windowSize: Vector2f = Vector2f(800.0f, 600.0f),
     /** How often to update the display. For example, 60 fps is 1/60 seconds. */
     private val targetFrameTime: Float = 1 / 60f,
     backgroundColour: Colour = Colour()
@@ -38,7 +37,7 @@ class Engine(
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE)
 
-        window = glfwCreateWindow(windowSize.width, windowSize.height, windowName, NULL, NULL)
+        window = glfwCreateWindow(windowSize.x.roundToInt(), windowSize.y.roundToInt(), windowName, NULL, NULL)
 
         if (window == NULL) {
             throw RuntimeException("Failed to create the GLFW window")
@@ -50,8 +49,8 @@ class Engine(
         // Center our window
         glfwSetWindowPos(
             window,
-            (videoMode!!.width() - windowSize.width) / 2,
-            (videoMode.height() - windowSize.height) / 2
+            ((videoMode!!.width() - windowSize.x) / 2).roundToInt(),
+            ((videoMode.height() - windowSize.y) / 2).roundToInt()
         )
 
         // Make the OpenGL context current
@@ -143,6 +142,7 @@ class Engine(
 
     private fun cleanup() {
         gameManager.cleanup()
+        ResourcePool.cleanup()
         keyboard.cleanup()
         mouse.cleanup()
         errorCallback?.free()
