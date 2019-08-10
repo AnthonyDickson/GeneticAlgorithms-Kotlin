@@ -14,15 +14,11 @@ class Mesh(
     positions: FloatArray,
     textureCoordinates: FloatArray,
     normals: FloatArray,
-    indices: IntArray,
-    var colour: Vector3f = Vector3f(),
-    var texture: Texture? = null
+    indices: IntArray
 ) {
     private val vaoId: Int
     private val vboIds: ArrayList<Int>
     private val vertexCount: Int
-
-    val isTextured: Boolean get() = texture != null
 
     init {
         var positionBuffer: FloatBuffer? = null
@@ -93,8 +89,8 @@ class Mesh(
         }
     }
 
-    fun render() {
-        texture?.bind()
+    fun render(material: Material) {
+        material.texture?.bind()
 
         // Draw the mesh
         glBindVertexArray(vaoId)
@@ -109,15 +105,14 @@ class Mesh(
         glDisableVertexAttribArray(1)
         glDisableVertexAttribArray(2)
         glBindVertexArray(0)
-        texture?.unbind()
+
+        material.texture?.unbind()
     }
 
     fun cleanup() {
         glDisableVertexAttribArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glDeleteBuffers(vboIds.toIntArray())
-
-        texture?.cleanup()
 
         glBindVertexArray(0)
         glDeleteVertexArrays(vaoId)

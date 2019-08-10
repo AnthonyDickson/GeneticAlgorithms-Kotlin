@@ -3,8 +3,10 @@ package com.github.eight0153.genetic_algorithms.engine.graphics
 
 import org.joml.Matrix4f
 import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.system.MemoryStack
+
 
 /** Encapsulates a shader program and its shaders. */
 class ShaderProgram @Throws(Exception::class)
@@ -35,23 +37,66 @@ constructor() {
         uniforms[uniformName] = uniformLocation
     }
 
+    @Throws(Exception::class)
+    fun createPointLightUniform(uniformName: String) {
+        createUniform("$uniformName.colour")
+        createUniform("$uniformName.position")
+        createUniform("$uniformName.intensity")
+        createUniform("$uniformName.attenuation.constant")
+        createUniform("$uniformName.attenuation.linear")
+        createUniform("$uniformName.attenuation.exponent")
+    }
+
+    @Throws(Exception::class)
+    fun createMaterialUniform(uniformName: String) {
+        createUniform("$uniformName.ambient")
+        createUniform("$uniformName.diffuse")
+        createUniform("$uniformName.specular")
+        createUniform("$uniformName.hasTexture")
+        createUniform("$uniformName.reflectance")
+    }
+
     fun setUniform(uniformName: String, value: Int) {
         glUniform1i(uniforms[uniformName]!!, value)
     }
 
-    fun setUniform(uniformName: String, value: Vector3f) {
-        MemoryStack.stackPush().use {
-            val fb = it.mallocFloat(3)
-            value.get(fb)
-            glUniform3fv(uniforms[uniformName]!!, fb)
-        }
+    fun setUniform(uniformName: String, value: Float) {
+        glUniform1f(uniforms[uniformName]!!, value)
     }
+
+    fun setUniform(uniformName: String, value: Vector3f) {
+        glUniform3f(uniforms[uniformName]!!, value.x, value.y, value.z)
+    }
+
+    fun setUniform(uniformName: String, value: Vector4f) {
+        glUniform4f(uniforms[uniformName]!!, value.x, value.y, value.z, value.z)
+    }
+
     fun setUniform(uniformName: String, value: Matrix4f) {
         MemoryStack.stackPush().use {
             val fb = it.mallocFloat(16)
             value.get(fb)
             glUniformMatrix4fv(uniforms[uniformName]!!, false, fb)
         }
+    }
+
+    fun setUniform(uniformName: String, pointLight: PointLight) {
+        setUniform("$uniformName.colour", pointLight.colour)
+        setUniform("$uniformName.position", pointLight.viewPosition)
+        setUniform("$uniformName.intensity", pointLight.intensity)
+
+        val att = pointLight.attenuation
+        setUniform("$uniformName.attenuation.constant", att.constant)
+        setUniform("$uniformName.attenuation.linear", att.linear)
+        setUniform("$uniformName.attenuation.exponent", att.exponent)
+    }
+
+    fun setUniform(uniformName: String, material: Material) {
+        setUniform("$uniformName.ambient", material.ambientColour)
+        setUniform("$uniformName.diffuse", material.diffuseColour)
+        setUniform("$uniformName.specular", material.specularColour)
+        setUniform("$uniformName.hasTexture", if (material.hasTexture) 1 else 0)
+        setUniform("$uniformName.reflectance", material.reflectance)
     }
 
     fun createVertexShader(shaderCode: String) {

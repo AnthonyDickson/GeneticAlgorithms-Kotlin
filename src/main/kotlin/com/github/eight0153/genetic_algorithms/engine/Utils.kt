@@ -1,7 +1,9 @@
 package com.github.eight0153.genetic_algorithms.engine
 
+import org.joml.Vector4f
 import java.io.File
 import java.net.URL
+import kotlin.random.Random
 
 class Utils {
     companion object {
@@ -22,6 +24,15 @@ class Utils {
             val file = File(getResourceUrl(resourceID)!!.file)
 
             return file.absolutePath
+        }
+
+        fun randomColour(): Vector4f {
+            return Vector4f(
+                Random.nextFloat(),
+                Random.nextFloat(),
+                Random.nextFloat(),
+                1.0f
+            )
         }
     }
 }

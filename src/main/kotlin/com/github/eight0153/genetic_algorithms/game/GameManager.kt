@@ -1,6 +1,7 @@
 package com.github.eight0153.genetic_algorithms.game
 
 import com.github.eight0153.genetic_algorithms.engine.*
+import com.github.eight0153.genetic_algorithms.engine.graphics.PointLight
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.joml.Vector2f
@@ -57,9 +58,21 @@ class GameManager : GameManagerI {
             }
         }
 
+        gameObjects.add(GrassBlockFactory.create())
+
         gameLogicManagers.add(CreatureManager(worldBounds))
 
-        renderer = Renderer(camera)
+        renderer = Renderer(
+            camera,
+            ambientLight = Vector3f(0.3f, 0.3f, 0.2f),
+            pointLight = PointLight(
+                colour = Vector3f(1.0f, 1.0f, 0.8f),
+                position = Vector3f(0.0f, 3.0f, 0.0f),
+                intensity = 0.8f,
+                attenuation = PointLight.Attenuation(0.0f, 0.0f, 0.1f)
+            )
+        )
+
         printInfo(windowName)
     }
 
@@ -156,7 +169,8 @@ class GameManager : GameManagerI {
         val infoMessages = arrayOf(
             "There are things that move around on the screen.",
             "Sometimes they die, sometimes they reproduce.",
-            "You can fly the camera around and pretend you're superman."
+            "You can fly the camera around and pretend you're superman.",
+            "Although, it is still kinda dark."
         )
 
         for (message in infoMessages) {
