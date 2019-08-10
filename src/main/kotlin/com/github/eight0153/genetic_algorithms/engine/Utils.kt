@@ -1,6 +1,6 @@
 package com.github.eight0153.genetic_algorithms.engine
 
-import org.joml.Vector4f
+import org.joml.Vector3f
 import java.io.File
 import java.net.URL
 import kotlin.random.Random
@@ -26,12 +26,11 @@ class Utils {
             return file.absolutePath
         }
 
-        fun randomColour(): Vector4f {
-            return Vector4f(
+        fun randomColour(): Vector3f {
+            return Vector3f(
                 Random.nextFloat(),
                 Random.nextFloat(),
-                Random.nextFloat(),
-                1.0f
+                Random.nextFloat()
             )
         }
     }

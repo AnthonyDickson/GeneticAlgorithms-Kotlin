@@ -92,9 +92,9 @@ constructor() {
     }
 
     fun setUniform(uniformName: String, material: Material) {
-        setUniform("$uniformName.ambient", material.ambientColour)
-        setUniform("$uniformName.diffuse", material.diffuseColour)
-        setUniform("$uniformName.specular", material.specularColour)
+        setUniform("$uniformName.ambient", Vector4f(material.ambientColour, 1.0f))
+        setUniform("$uniformName.diffuse", Vector4f(material.diffuseColour, 1.0f))
+        setUniform("$uniformName.specular", Vector4f(material.specularColour, 1.0f))
         setUniform("$uniformName.hasTexture", if (material.hasTexture) 1 else 0)
         setUniform("$uniformName.reflectance", material.reflectance)
     }

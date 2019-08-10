@@ -4,7 +4,6 @@ import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.graphics.Material
 import com.github.eight0153.genetic_algorithms.engine.graphics.Mesh
 import org.joml.Vector3f
-import org.joml.Vector4f
 import kotlin.random.Random
 
 // TODO: Add genes and other typical genetic operators
@@ -18,7 +17,7 @@ class Creature(
             return ResourcePool.getMesh("/models/cube.obj")
         }
 
-        fun createMaterial(colour: Vector4f? = null): Material {
+        fun createMaterial(colour: Vector3f? = null): Material {
             return Material(
                 colour ?: Utils.randomColour(),
                 0.1f
@@ -31,7 +30,7 @@ class Creature(
          */
         fun create(
             position: Vector3f = Vector3f(0.0f, 0.0f, 0.0f),
-            colour: Vector4f? = null
+            colour: Vector3f? = null
         ): Creature {
             val creature = Creature(createMesh())
 

@@ -2,7 +2,7 @@ package com.github.eight0153.genetic_algorithms.engine.graphics
 
 import org.joml.Vector3f
 
-class PointLight(
+data class PointLight(
     val colour: Vector3f,
     val position: Vector3f,
     val intensity: Float,
