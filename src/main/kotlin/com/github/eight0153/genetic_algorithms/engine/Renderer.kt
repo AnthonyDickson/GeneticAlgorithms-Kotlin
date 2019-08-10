@@ -1,5 +1,6 @@
 package com.github.eight0153.genetic_algorithms.engine
 
+import com.github.eight0153.genetic_algorithms.engine.graphics.DirectionalLight
 import com.github.eight0153.genetic_algorithms.engine.graphics.PointLight
 import com.github.eight0153.genetic_algorithms.engine.graphics.ShaderProgram
 import org.joml.Matrix4f
@@ -12,6 +13,7 @@ class Renderer(
     private val camera: Camera,
     private val ambientLight: Vector3f,
     private val pointLight: PointLight,
+    private val directionalLight: DirectionalLight,
     private val specularPower: Float = 10.0f
 ) {
     private val shaderProgram: ShaderProgram = ShaderProgram()
@@ -30,6 +32,7 @@ class Renderer(
         shaderProgram.createUniform("ambientLight")
         shaderProgram.createUniform("specularPower")
         shaderProgram.createPointLightUniform("pointLight")
+        shaderProgram.createDirectionalLightUniform("directionalLight")
     }
 
     fun render(gameObjects: List<GameObject>) {
@@ -39,7 +42,9 @@ class Renderer(
         shaderProgram.setUniform("ambientLight", ambientLight)
         shaderProgram.setUniform("specularPower", specularPower)
 
-        val lightPointPosition = Vector4f(pointLight.position, 1.0f).mul(camera.viewMatrix)
+        val viewMatrix = camera.viewMatrix
+
+        val lightPointPosition = Vector4f(pointLight.position, 1.0f).mul(viewMatrix)
         pointLight.viewPosition.set(
             lightPointPosition.x,
             lightPointPosition.y,
@@ -47,7 +52,14 @@ class Renderer(
         )
         shaderProgram.setUniform("pointLight", pointLight)
 
-        val viewMatrix = camera.viewMatrix
+        val directionalLightDirection = Vector4f(directionalLight.direction, 0.0f).mul(viewMatrix)
+        directionalLight.viewDirection.set(
+            directionalLightDirection.x,
+            directionalLightDirection.y,
+            directionalLightDirection.z
+        )
+        shaderProgram.setUniform("directionalLight", directionalLight)
+
         val viewModel = Matrix4f()
 
         for (gameObject in gameObjects.filter { it.shouldRender }) {

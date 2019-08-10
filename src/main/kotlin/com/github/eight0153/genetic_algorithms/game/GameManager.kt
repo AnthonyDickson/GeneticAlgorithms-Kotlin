@@ -1,6 +1,7 @@
 package com.github.eight0153.genetic_algorithms.game
 
 import com.github.eight0153.genetic_algorithms.engine.*
+import com.github.eight0153.genetic_algorithms.engine.graphics.DirectionalLight
 import com.github.eight0153.genetic_algorithms.engine.graphics.PointLight
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
@@ -70,6 +71,11 @@ class GameManager : GameManagerI {
                 position = Vector3f(0.0f, 3.0f, 0.0f),
                 intensity = 0.8f,
                 attenuation = PointLight.Attenuation(0.0f, 0.0f, 0.1f)
+            ),
+            directionalLight = DirectionalLight(
+                colour = Vector3f(1.0f, 1.0f, 0.9f),
+                direction = Vector3f(1.0f, 1.0f, 1.0f),
+                intensity = 0.8f
             )
         )
 

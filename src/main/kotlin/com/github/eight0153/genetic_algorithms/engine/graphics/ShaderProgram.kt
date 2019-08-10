@@ -48,6 +48,13 @@ constructor() {
     }
 
     @Throws(Exception::class)
+    fun createDirectionalLightUniform(uniformName: String) {
+        createUniform("$uniformName.colour")
+        createUniform("$uniformName.direction")
+        createUniform("$uniformName.intensity")
+    }
+
+    @Throws(Exception::class)
     fun createMaterialUniform(uniformName: String) {
         createUniform("$uniformName.ambient")
         createUniform("$uniformName.diffuse")
@@ -89,6 +96,12 @@ constructor() {
         setUniform("$uniformName.attenuation.constant", att.constant)
         setUniform("$uniformName.attenuation.linear", att.linear)
         setUniform("$uniformName.attenuation.exponent", att.exponent)
+    }
+
+    fun setUniform(uniformName: String, directionalLight: DirectionalLight) {
+        setUniform("$uniformName.colour", directionalLight.colour)
+        setUniform("$uniformName.direction", directionalLight.viewDirection)
+        setUniform("$uniformName.intensity", directionalLight.intensity)
     }
 
     fun setUniform(uniformName: String, material: Material) {
