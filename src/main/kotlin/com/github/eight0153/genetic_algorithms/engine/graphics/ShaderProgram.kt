@@ -44,7 +44,7 @@ constructor() {
         createUniform("$uniformName.intensity")
         createUniform("$uniformName.attenuation.constant")
         createUniform("$uniformName.attenuation.linear")
-        createUniform("$uniformName.attenuation.exponent")
+        createUniform("$uniformName.attenuation.exponential")
     }
 
     @Throws(Exception::class)
@@ -52,6 +52,20 @@ constructor() {
         createPointLightUniform("$uniformName.pointLight")
         createUniform("$uniformName.direction")
         createUniform("$uniformName.cosineConeAngle")
+    }
+
+    @Throws(Exception::class)
+    fun createPointLightUniforms(uniformName: String, size: Int) {
+        for (i in 0 until size) {
+            createPointLightUniform("$uniformName[$i]")
+        }
+    }
+
+    @Throws(Exception::class)
+    fun createSpotLightUniforms(uniformName: String, size: Int) {
+        for (i in 0 until size) {
+            createSpotLightUniform("$uniformName[$i]")
+        }
     }
 
     @Throws(Exception::class)
@@ -102,13 +116,33 @@ constructor() {
         val att = pointLight.attenuation
         setUniform("$uniformName.attenuation.constant", att.constant)
         setUniform("$uniformName.attenuation.linear", att.linear)
-        setUniform("$uniformName.attenuation.exponent", att.exponent)
+        setUniform("$uniformName.attenuation.exponential", att.exponential)
     }
 
     fun setUniform(uniformName: String, spotLight: SpotLight) {
         setUniform("$uniformName.pointLight", spotLight.pointLight)
         setUniform("$uniformName.direction", spotLight.viewDirection)
         setUniform("$uniformName.cosineConeAngle", spotLight.cosineConeAngle)
+    }
+
+    fun setUniform(uniformName: String, pointLight: PointLight, pos: Int) {
+        setUniform("$uniformName[$pos]", pointLight)
+    }
+
+    fun setUniform(uniformName: String, pointLights: Array<PointLight>) {
+        for (i in 0 until pointLights.size) {
+            setUniform(uniformName, pointLights[i], i)
+        }
+    }
+
+    fun setUniform(uniformName: String, spotLight: SpotLight, pos: Int) {
+        setUniform("$uniformName[$pos]", spotLight)
+    }
+
+    fun setUniform(uniformName: String, spotLights: Array<SpotLight>) {
+        for (i in 0 until spotLights.size) {
+            setUniform(uniformName, spotLights[i], i)
+        }
     }
 
     fun setUniform(uniformName: String, directionalLight: DirectionalLight) {

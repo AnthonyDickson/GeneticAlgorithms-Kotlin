@@ -1,14 +1,13 @@
 package com.github.eight0153.genetic_algorithms.game
 
 import com.github.eight0153.genetic_algorithms.engine.*
-import com.github.eight0153.genetic_algorithms.engine.graphics.DirectionalLight
-import com.github.eight0153.genetic_algorithms.engine.graphics.PointLight
-import com.github.eight0153.genetic_algorithms.engine.graphics.SpotLight
+import com.github.eight0153.genetic_algorithms.engine.graphics.*
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
+import kotlin.math.cos
 
 class GameManager(private val worldSize: Vector3f) : GameManagerI {
     private val frameRateLogger = FrameRateLogger()
@@ -45,6 +44,11 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         camera = Camera(windowSize, worldBounds)
         resetCamera()
 
+        //==============//
+        // Game Objects //
+        //==============//
+
+
         gameObjects = ArrayList()
 
         for (row in 0 until worldSize.x.toInt()) {
@@ -59,16 +63,88 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
             }
         }
 
-        gameObjects.add(GrassBlockFactory.create())
-
         gameLogicManagers.add(CreatureManager(worldBounds))
 
+        // Create a wall of blocks to test lighting on.
+        val rows = 5
+        val cols = 5
+
+        val mesh = ResourcePool.getMesh("/models/cube.obj")
+        val material = Material(colour = Vector3f(1.0f), reflectance = 0.2f)
+
+        for (row in 0 until rows) {
+            for (col in 0 until cols) {
+                val testBlock = GameObject(mesh, material)
+                testBlock.transform.translate(x = (col - cols / 2).toFloat(), y = row.toFloat())
+                gameObjects.add(testBlock)
+            }
+        }
+
+        //==========//
+        // Lighting //
+        //==========//
 
         val ambientLight = Vector3f(0.5f, 0.5f, 0.6f)
         val directionalLight = DirectionalLight(
             colour = Vector3f(1.0f, 1.0f, 0.9f),
             direction = Vector3f(1.0f, 1.0f, 1.0f),
             intensity = 0.8f
+        )
+
+        val pointLights = arrayOf(
+            PointLight(
+                colour = Vector3f(1.0f, 0.0f, 0.0f),
+                position = Vector3f(-1.0f, 1.0f, -3.0f),
+                attenuation = Attenuation(exponential = 0.25f)
+            ),
+            PointLight(
+                colour = Vector3f(0.0f, 1.0f, 0.0f),
+                position = Vector3f(1.0f, 1.0f, -3.0f),
+                attenuation = Attenuation(exponential = 0.25f)
+            ),
+            PointLight(
+                colour = Vector3f(0.0f, 0.0f, 1.0f),
+                position = Vector3f(0.0f, 1.0f, -4.0f),
+                attenuation = Attenuation(exponential = 0.25f)
+            )
+        )
+
+        val spotLights = arrayOf(
+            SpotLight(
+                PointLight(
+                    colour = Vector3f(1.0f, 0.0f, 0.0f),
+                    position = Vector3f(1.0f, 1.0f, 6.0f),
+                    attenuation = Attenuation(exponential = 0.01f)
+                ),
+                direction = Vector3f(0.0f, 0.0f, -1.0f),
+                cosineConeAngle = cos(Math.PI / 12).toFloat()
+            ),
+            SpotLight(
+                PointLight(
+                    colour = Vector3f(0.0f, 1.0f, 0.0f),
+                    position = Vector3f(-1.0f, 1.0f, 6.0f),
+                    attenuation = Attenuation(exponential = 0.01f)
+                ),
+                direction = Vector3f(0.0f, 0.0f, -1.0f),
+                cosineConeAngle = cos(Math.PI / 12).toFloat()
+            ),
+            SpotLight(
+                PointLight(
+                    colour = Vector3f(0.0f, 0.0f, 1.0f),
+                    position = Vector3f(0.0f, 3.0f, 6.0f),
+                    attenuation = Attenuation(exponential = 0.01f)
+                ),
+                direction = Vector3f(0.0f, 0.0f, -1.0f),
+                cosineConeAngle = cos(Math.PI / 12).toFloat()
+            )
+        )
+
+        renderer = Renderer(
+            camera,
+            ambientLight = ambientLight,
+            directionalLight = directionalLight,
+            pointLights = pointLights,
+            spotLights = spotLights
         )
 
         gameLogicManagers.add(
@@ -79,54 +155,12 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
             )
         )
 
-        renderer = Renderer(
-            camera,
-            ambientLight = ambientLight,
-            pointLight = PointLight(
-                colour = Vector3f(1.0f, 1.0f, 0.8f),
-                position = Vector3f(0.0f, 1.0f, -2.0f),
-                intensity = 0.8f
-            ),
-            directionalLight = directionalLight,
-            spotLight = SpotLight(
-                PointLight(
-                    colour = Vector3f(1.0f, 0.5f, 0.5f),
-                    position = Vector3f(0.0f, 0.5f, 1.0f)
-                ),
-                direction = Vector3f(0.0f, 0.0f, -1.0f)
-            )
-        )
-
-        var testBlock = GrassBlockFactory.create()
-        testBlock.transform.translate(y = 1.0f)
-        gameObjects.add(testBlock)
-
-        testBlock = GrassBlockFactory.create()
-        testBlock.transform.translate(x = 1.0f)
-        gameObjects.add(testBlock)
-
-        testBlock = GrassBlockFactory.create()
-        testBlock.transform.translate(x = 1.0f, y = 1.0f)
-        gameObjects.add(testBlock)
-
-        testBlock = GrassBlockFactory.create()
-        testBlock.transform.translate(x = -1.0f)
-        gameObjects.add(testBlock)
-
-        testBlock = GrassBlockFactory.create()
-        testBlock.transform.translate(x = -1.0f, y = 1.0f)
-        gameObjects.add(testBlock)
-
-        testBlock = GrassBlockFactory.create()
-        testBlock.transform.translate(z = 2.0f)
-        gameObjects.add(testBlock)
-
         printInfo(windowName)
     }
 
     private fun resetCamera() {
         camera.translation.zero()
-        camera.translate(y = 4.0f)
+        camera.translate(y = 2.0f, z = 10.0f)
         camera.rotation.zero()
     }
 

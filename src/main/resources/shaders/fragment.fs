@@ -7,7 +7,7 @@
 struct Attenuation {
     float constant;
     float linear;
-    float exponent;
+    float exponential;
 };
 
 struct PointLight {
@@ -45,13 +45,16 @@ in  vec3 outNormal;
 in  vec3 outPosition;
 out vec4 fragmentColour;
 
+const int MAX_POINT_LIGHTS = 5;
+const int MAX_SPOT_LIGHTS = 5;
+
 uniform Material material;
 uniform sampler2D textureSampler;
 
 uniform vec3 ambientLight;
 uniform float specularPower;
-uniform PointLight pointLight;
-uniform SpotLight spotLight;
+uniform PointLight pointLights[MAX_POINT_LIGHTS];
+uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform DirectionalLight directionalLight;
 
 vec4 ambientC;
@@ -106,7 +109,7 @@ vec4 calculatePointLight(PointLight light, vec3 position, vec3 normal) {
     float distance = length(lightDirection);
     float attenuationInverse = light.attenuation.constant + 
         light.attenuation.linear * distance +
-        light.attenuation.exponent * distance * distance;
+        light.attenuation.exponential * distance * distance;
         
     return diffuseSpecular / attenuationInverse;
 }
@@ -130,8 +133,18 @@ void main() {
     setupColours(material, outTextureCoordinates);
     
     vec4 diffuseSpecularComponent = calculateDirectionalLight(directionalLight, outPosition, outNormal);
-    diffuseSpecularComponent += calculatePointLight(pointLight, outPosition, outNormal);
-    diffuseSpecularComponent += calculateSpotLight(spotLight, outPosition, outNormal);
+
+    for (int i = 0; i < MAX_POINT_LIGHTS; i++) {
+        if (pointLights[i].intensity > 0) {
+            diffuseSpecularComponent += calculatePointLight(pointLights[i], outPosition, outNormal);
+        }
+    }
+
+    for (int i = 0; i < MAX_SPOT_LIGHTS; i++) {
+        if (spotLights[i].pointLight.intensity > 0) {
+            diffuseSpecularComponent += calculateSpotLight(spotLights[i], outPosition, outNormal);
+        }
+    }
 
     fragmentColour = ambientC * vec4(ambientLight, 1.0) + diffuseSpecularComponent;
 }

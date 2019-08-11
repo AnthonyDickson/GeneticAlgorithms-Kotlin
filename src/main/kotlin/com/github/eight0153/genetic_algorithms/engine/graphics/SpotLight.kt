@@ -9,8 +9,9 @@ data class SpotLight(
     /**
      * The cosine of the angle of the cone of light that this [SpotLight] emits.
      *
-     * For example, if you want a spot light that emits light in a 90 degree cone you should set [cosineConeAngle] to
-     * something like cos(Math.toDegrees(90)).
+     * This is the cutoff angle for each side, so if you should halve the total angle of the cone.
+     * For example, if you want a [SpotLight] that emits light in a 90 degree cone you should set [cosineConeAngle] to
+     * something like cos(Math.toDegrees(45)).
      */
     val cosineConeAngle: Float = cos(Math.PI / 2.0).toFloat()
 ) {
