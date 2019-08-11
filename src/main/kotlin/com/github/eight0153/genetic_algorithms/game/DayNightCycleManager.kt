@@ -88,7 +88,7 @@ class DayNightCycleManager(
     private val date: String get() = "%04d/%02d/%02d".format(years.toInt(), months.toInt(), days.toInt())
 
     /** The time (hours since midnight). */
-    private val time: String get() = "%02d:%02d:%04.2f".format(hours.toInt(), minutes.toInt(), seconds)
+    private val time: String get() = "%02d:%02d:%05.2f".format(hours.toInt(), minutes.toInt(), seconds)
 
     /** The date and time since epoch. */
     private val timestamp: String get() = "$date $time"
@@ -100,13 +100,19 @@ class DayNightCycleManager(
     override val controls: Map<String, String>
         get() = mapOf(
             Pair("F4", "Toggle Timestamp Logging"),
-            Pair("F5", "Toggle Day/Night Cycle")
+            Pair("F5", "Toggle Day/Night Cycle"),
+            Pair("F6", "Toggle Day/Night (Only when day/night cycle is OFF)")
         )
 
     override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
         when {
             keyboard.wasPressed(GLFW.GLFW_KEY_F4) -> timeDateLogger.toggle()
             keyboard.wasPressed(GLFW.GLFW_KEY_F5) -> toggle()
+            keyboard.wasPressed(GLFW.GLFW_KEY_F6) -> {
+                if (!shouldUpdate) {
+                    timeOfDay = if (timeOfDay == MIDDAY) MIDNIGHT else MIDDAY
+                }
+            }
         }
 
         return true
