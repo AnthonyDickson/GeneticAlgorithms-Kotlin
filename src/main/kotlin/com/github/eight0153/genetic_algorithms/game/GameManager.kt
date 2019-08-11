@@ -3,13 +3,14 @@ package com.github.eight0153.genetic_algorithms.game
 import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.graphics.DirectionalLight
 import com.github.eight0153.genetic_algorithms.engine.graphics.PointLight
+import com.github.eight0153.genetic_algorithms.engine.graphics.SpotLight
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 
-class GameManager : GameManagerI {
+class GameManager(private val worldSize: Vector3f) : GameManagerI {
     private val frameRateLogger = FrameRateLogger()
 
     private var gameObjects = ArrayList<GameObject>()
@@ -24,8 +25,7 @@ class GameManager : GameManagerI {
 
     override fun init(
         windowSize: Vector2f,
-        windowName: String,
-        worldSize: Vector3f
+        windowName: String
     ) {
         val minBounds = Vector3f(
             -0.5f * worldSize.x,
