@@ -63,20 +63,32 @@ class GameManager : GameManagerI {
 
         gameLogicManagers.add(CreatureManager(worldBounds))
 
+
+        val ambientLight = Vector3f(0.5f, 0.5f, 0.6f)
+        val directionalLight = DirectionalLight(
+            colour = Vector3f(1.0f, 1.0f, 0.9f),
+            direction = Vector3f(1.0f, 1.0f, 1.0f),
+            intensity = 0.8f
+        )
+
+        gameLogicManagers.add(
+            DayNightCycleManager(
+                60.0f,
+                ambientLight,
+                directionalLight
+            )
+        )
+
         renderer = Renderer(
             camera,
-            ambientLight = Vector3f(0.3f, 0.3f, 0.2f),
+            ambientLight = ambientLight,
             pointLight = PointLight(
                 colour = Vector3f(1.0f, 1.0f, 0.8f),
                 position = Vector3f(0.0f, 3.0f, 0.0f),
                 intensity = 0.8f,
                 attenuation = PointLight.Attenuation(0.0f, 0.0f, 0.1f)
             ),
-            directionalLight = DirectionalLight(
-                colour = Vector3f(1.0f, 1.0f, 0.9f),
-                direction = Vector3f(1.0f, 1.0f, 1.0f),
-                intensity = 0.8f
-            )
+            directionalLight = directionalLight
         )
 
         printInfo(windowName)

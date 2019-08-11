@@ -14,8 +14,8 @@ class PopulationStatisticsLogger(
     private var totalBirths: Int = 0
     private var numBirths: Int = 0
     private var numDeaths: Int = 0
-    /** Whether or not to log the frame time. */
-    private var isEnabled = true
+    /** Whether or not to log the population statistics. */
+    private var isEnabled = false
     /** The amount of time since the last log message was printed. */
     private var timeSinceLastLog = 0.0
     /** The exponential moving average of the population. */
