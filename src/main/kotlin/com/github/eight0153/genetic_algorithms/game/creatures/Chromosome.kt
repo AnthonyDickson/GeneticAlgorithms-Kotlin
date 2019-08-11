@@ -4,6 +4,9 @@ import com.github.eight0153.genetic_algorithms.engine.BoundsND
 import kotlin.random.Random
 
 class Chromosome {
+    // TODO: Add gene for size
+    // TODO: Add gene for sensory range
+    // TODO: Make separate genes for daytime sensory range and nighttime sensory range
     companion object {
         // Define mappings here
         const val NUM_GENES = 8

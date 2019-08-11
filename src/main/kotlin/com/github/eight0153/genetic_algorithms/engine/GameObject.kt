@@ -7,7 +7,8 @@ import org.joml.Matrix4f
 open class GameObject(
     private val mesh: Mesh,
     var material: Material = Material(),
-    val transform: Transform = Transform()
+    val transform: Transform = Transform(),
+    val boundingBox: AABB = AABB(transform)
 ) {
     val modelMatrix: Matrix4f get() = transform.transformMatrix
     var shouldRender = true

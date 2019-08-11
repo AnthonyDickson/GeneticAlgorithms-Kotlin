@@ -4,6 +4,7 @@ import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.graphics.*
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
+import com.github.eight0153.genetic_algorithms.game.creatures.Food
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
@@ -47,10 +48,9 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         //==============//
         // Game Objects //
         //==============//
-
-
         gameObjects = ArrayList()
 
+        // Ground
         for (row in 0 until worldSize.x.toInt()) {
             for (col in 0 until worldSize.z.toInt()) {
                 val block = GrassBlockFactory.create()
@@ -79,6 +79,10 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
                 gameObjects.add(testBlock)
             }
         }
+
+        gameObjects.add(
+            Food.create(Vector3f(0.0f, -0.5f, 5.0f))
+        )
 
         //==========//
         // Lighting //
@@ -224,6 +228,24 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         gameObjects.forEach { it.update(delta) }
         gameLogicManagers.forEach { it.update(delta) }
         frameRateLogger.update(delta)
+
+        handleCollisions()
+    }
+
+    fun handleCollisions() {
+        // TODO: Implement some sort of space partitioning (e.g. uniform grid, k-d tree, binary space tree, octree).
+        for (food in gameObjects.filterIsInstance(Food::class.java)) {
+            // TODO: Implement a better way for accessing game objects between game logic managers.
+            for (creature in gameLogicManagers.filterIsInstance<CreatureManager>().first().creatures) {
+                // TODO: Fix this! Currently collision detection doesn't work as expected.
+                //  Check that bounding boxes are being created as expected and that they are updated as expeced.
+                if (food.boundingBox.intersects(creature.boundingBox)) {
+                    creature.give(food)
+                    gameObjects.remove(food)
+                    food.cleanup()
+                }
+            }
+        }
     }
 
     override fun render() {

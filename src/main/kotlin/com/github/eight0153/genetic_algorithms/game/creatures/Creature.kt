@@ -16,6 +16,7 @@ import kotlin.random.Random
 class Creature(
     private val chromosome: Chromosome = Chromosome(),
     transform: Transform = Transform(),
+    boundingBox: AABB = AABB(transform),
     mesh: Mesh = createMesh(),
     material: Material = createMaterial(
         colour = Vector3f(
@@ -24,7 +25,7 @@ class Creature(
             chromosome[COLOUR_BLUE].toFloat()
         )
     )
-) : GameObject(mesh, material, transform) {
+) : GameObject(mesh, material, transform, boundingBox) {
     companion object {
         fun createMesh(): Mesh {
             return ResourcePool.getMesh("/models/cube.obj")
@@ -59,6 +60,17 @@ class Creature(
             return creature
         }
     }
+
+    // TODO: Implement hunger/energy system that acts as a resource pool for performing actions such as moving.
+    // TODO: Implement a hit points system which decreases with hunger and possibly fighting with other creatures.
+    // TODO: Make creatures fight each other, or not! Add pacifist and aggressive traits. Based on these traits
+    //  creatures may fight over nearby food and potential mates. When fighting certain traits such as size, speed,
+    //  bravery/cowardice, altruism could affect the probability that a creature concedes or accepts the 'duel'.
+    // TODO: Give creatures a sensory range and make them move towards food and perhaps away from threatening creatures
+    //  (predators,  stronger creatures etc.)
+    // TODO: Implement a simple search algorithm for creatures. This could be:
+    //   Pick a point within the creatures sensory range, move to that point, check for food, move towards food if
+    //   found, otherwise start again.
 
     var isDead = false
     var shouldReplicate: Boolean = false
@@ -103,8 +115,8 @@ class Creature(
         return Creature(
             chromosome,
             Transform(transform),
-            createMesh(),
-            createMaterial(
+            mesh = createMesh(),
+            material = createMaterial(
                 colour = Vector3f(
                     chromosome[COLOUR_RED].toFloat(),
                     chromosome[COLOUR_GREEN].toFloat(),
@@ -112,6 +124,20 @@ class Creature(
                 )
             )
         )
+    }
+
+    fun give(food: Food) {
+        // TODO: Allow creatures to stockpile food.
+        //  From this you could give creatures altruistic traits to share surplus food with certain creatures
+        //  (e.g. kin, species, particular traits). You could also give creatures short-term and long-term planning
+        //  traits that change how the creature balances short vs. long term gains. For example, a short-sighted
+        //  creature may just eat any food it picks up regardless of any long-term goals
+        // TODO: Give a chance for nearby creatures to challenge this creature for the food.
+        eat(food)
+    }
+
+    fun eat(food: Food) {
+        println("Yum!")
     }
 
 }

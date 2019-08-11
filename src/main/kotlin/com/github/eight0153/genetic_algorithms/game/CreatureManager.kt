@@ -19,7 +19,7 @@ class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPop
         const val MAX_CREATURES = 512
     }
 
-    private val creatures = ArrayList<Creature>()
+    val creatures = ArrayList<Creature>()
     private val populationStatisticsLogger = PopulationStatisticsLogger()
 
     init {
