@@ -5,15 +5,9 @@ import org.joml.Vector3f
 data class PointLight(
     val colour: Vector3f,
     val position: Vector3f,
-    val intensity: Float,
-    val attenuation: Attenuation
+    val intensity: Float = 1.0f,
+    val attenuation: Attenuation = Attenuation()
 ) {
     /** The position of the [PointLight] in world space (i.e. transformed by the view matrix of the camera). */
     val viewPosition = Vector3f(position)
-
-    data class Attenuation(
-        val constant: Float,
-        val linear: Float,
-        val exponent: Float
-    )
 }

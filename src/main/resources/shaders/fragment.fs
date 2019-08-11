@@ -17,6 +17,12 @@ struct PointLight {
     Attenuation attenuation;
 };
 
+struct SpotLight {
+    PointLight pointLight;
+    vec3 direction;
+    float cosineConeAngle;
+};
+
 struct DirectionalLight {
     vec3 colour;
     vec3 direction;
@@ -45,6 +51,7 @@ uniform sampler2D textureSampler;
 uniform vec3 ambientLight;
 uniform float specularPower;
 uniform PointLight pointLight;
+uniform SpotLight spotLight;
 uniform DirectionalLight directionalLight;
 
 vec4 ambientC;
@@ -104,11 +111,27 @@ vec4 calculatePointLight(PointLight light, vec3 position, vec3 normal) {
     return diffuseSpecular / attenuationInverse;
 }
 
+vec4 calculateSpotLight(SpotLight light, vec3 position, vec3 normal) {
+    vec3 lightDirection = light.pointLight.position - position;
+    vec3 toLightDirection  = normalize(lightDirection);
+    float alpha = dot(normalize(light.direction), -toLightDirection);
+
+    vec4 colour = vec4(0, 0, 0, 0);
+
+    if (alpha > light.cosineConeAngle) {
+        colour = calculatePointLight(light.pointLight, position, normal);
+        colour *= (1.0 - (1.0 - alpha)/(1.0 - light.cosineConeAngle));
+    }
+
+    return colour;
+}
+
 void main() {
     setupColours(material, outTextureCoordinates);
     
     vec4 diffuseSpecularComponent = calculateDirectionalLight(directionalLight, outPosition, outNormal);
     diffuseSpecularComponent += calculatePointLight(pointLight, outPosition, outNormal);
+    diffuseSpecularComponent += calculateSpotLight(spotLight, outPosition, outNormal);
 
     fragmentColour = ambientC * vec4(ambientLight, 1.0) + diffuseSpecularComponent;
 }

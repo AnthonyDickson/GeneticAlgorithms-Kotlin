@@ -3,6 +3,7 @@ package com.github.eight0153.genetic_algorithms.engine
 import com.github.eight0153.genetic_algorithms.engine.graphics.DirectionalLight
 import com.github.eight0153.genetic_algorithms.engine.graphics.PointLight
 import com.github.eight0153.genetic_algorithms.engine.graphics.ShaderProgram
+import com.github.eight0153.genetic_algorithms.engine.graphics.SpotLight
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -14,6 +15,7 @@ class Renderer(
     private val ambientLight: Vector3f,
     private val pointLight: PointLight,
     private val directionalLight: DirectionalLight,
+    private val spotLight: SpotLight,
     private val specularPower: Float = 10.0f
 ) {
     private val shaderProgram: ShaderProgram = ShaderProgram()
@@ -29,26 +31,42 @@ class Renderer(
 
         shaderProgram.createMaterialUniform("material")
 
-        shaderProgram.createUniform("ambientLight")
         shaderProgram.createUniform("specularPower")
-        shaderProgram.createPointLightUniform("pointLight")
+        shaderProgram.createUniform("ambientLight")
         shaderProgram.createDirectionalLightUniform("directionalLight")
+        shaderProgram.createPointLightUniform("pointLight")
+        shaderProgram.createSpotLightUniform("spotLight")
     }
 
     fun render(gameObjects: List<GameObject>) {
         shaderProgram.bind()
         shaderProgram.setUniform("projection", camera.projectionMatrix)
         shaderProgram.setUniform("textureSampler", 0)
-        shaderProgram.setUniform("ambientLight", ambientLight)
         shaderProgram.setUniform("specularPower", specularPower)
+        shaderProgram.setUniform("ambientLight", ambientLight)
 
         val viewMatrix = camera.viewMatrix
 
-        val lightPointPosition = Vector4f(pointLight.position, 1.0f).mul(viewMatrix)
+        val spotLightPosition = Vector4f(spotLight.pointLight.position, 1.0f).mul(viewMatrix)
+        spotLight.pointLight.viewPosition.set(
+            spotLightPosition.x,
+            spotLightPosition.y,
+            spotLightPosition.z
+        )
+
+        val spotLightDirection = Vector4f(spotLight.direction, 0.0f).mul(viewMatrix)
+        spotLight.viewDirection.set(
+            spotLightDirection.x,
+            spotLightDirection.y,
+            spotLightDirection.z
+        )
+        shaderProgram.setUniform("spotLight", spotLight)
+
+        val pointLightPosition = Vector4f(pointLight.position, 1.0f).mul(viewMatrix)
         pointLight.viewPosition.set(
-            lightPointPosition.x,
-            lightPointPosition.y,
-            lightPointPosition.z
+            pointLightPosition.x,
+            pointLightPosition.y,
+            pointLightPosition.z
         )
         shaderProgram.setUniform("pointLight", pointLight)
 

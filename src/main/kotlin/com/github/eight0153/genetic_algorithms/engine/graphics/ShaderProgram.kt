@@ -48,6 +48,13 @@ constructor() {
     }
 
     @Throws(Exception::class)
+    fun createSpotLightUniform(uniformName: String) {
+        createPointLightUniform("$uniformName.pointLight")
+        createUniform("$uniformName.direction")
+        createUniform("$uniformName.cosineConeAngle")
+    }
+
+    @Throws(Exception::class)
     fun createDirectionalLightUniform(uniformName: String) {
         createUniform("$uniformName.colour")
         createUniform("$uniformName.direction")
@@ -96,6 +103,12 @@ constructor() {
         setUniform("$uniformName.attenuation.constant", att.constant)
         setUniform("$uniformName.attenuation.linear", att.linear)
         setUniform("$uniformName.attenuation.exponent", att.exponent)
+    }
+
+    fun setUniform(uniformName: String, spotLight: SpotLight) {
+        setUniform("$uniformName.pointLight", spotLight.pointLight)
+        setUniform("$uniformName.direction", spotLight.viewDirection)
+        setUniform("$uniformName.cosineConeAngle", spotLight.cosineConeAngle)
     }
 
     fun setUniform(uniformName: String, directionalLight: DirectionalLight) {

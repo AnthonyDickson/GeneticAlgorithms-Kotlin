@@ -84,12 +84,42 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
             ambientLight = ambientLight,
             pointLight = PointLight(
                 colour = Vector3f(1.0f, 1.0f, 0.8f),
-                position = Vector3f(0.0f, 3.0f, 0.0f),
-                intensity = 0.8f,
-                attenuation = PointLight.Attenuation(0.0f, 0.0f, 0.1f)
+                position = Vector3f(0.0f, 1.0f, -2.0f),
+                intensity = 0.8f
             ),
-            directionalLight = directionalLight
+            directionalLight = directionalLight,
+            spotLight = SpotLight(
+                PointLight(
+                    colour = Vector3f(1.0f, 0.5f, 0.5f),
+                    position = Vector3f(0.0f, 0.5f, 1.0f)
+                ),
+                direction = Vector3f(0.0f, 0.0f, -1.0f)
+            )
         )
+
+        var testBlock = GrassBlockFactory.create()
+        testBlock.transform.translate(y = 1.0f)
+        gameObjects.add(testBlock)
+
+        testBlock = GrassBlockFactory.create()
+        testBlock.transform.translate(x = 1.0f)
+        gameObjects.add(testBlock)
+
+        testBlock = GrassBlockFactory.create()
+        testBlock.transform.translate(x = 1.0f, y = 1.0f)
+        gameObjects.add(testBlock)
+
+        testBlock = GrassBlockFactory.create()
+        testBlock.transform.translate(x = -1.0f)
+        gameObjects.add(testBlock)
+
+        testBlock = GrassBlockFactory.create()
+        testBlock.transform.translate(x = -1.0f, y = 1.0f)
+        gameObjects.add(testBlock)
+
+        testBlock = GrassBlockFactory.create()
+        testBlock.transform.translate(z = 2.0f)
+        gameObjects.add(testBlock)
 
         printInfo(windowName)
     }
