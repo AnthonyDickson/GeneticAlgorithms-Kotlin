@@ -9,6 +9,12 @@ class Transform(
     var scale: Float = 1f,
     var rotation: Quaternionf = Quaternionf()
 ) {
+    constructor(transform: Transform) : this(
+        Vector3f(transform.translation),
+        transform.scale,
+        Quaternionf(transform.rotation)
+    )
+
     val transformMatrix: Matrix4f get() = Matrix4f().scale(scale).rotate(rotation).translate(translation)
 
     fun rotate(x: Float = 0f, y: Float = 0f, z: Float = 0f) {

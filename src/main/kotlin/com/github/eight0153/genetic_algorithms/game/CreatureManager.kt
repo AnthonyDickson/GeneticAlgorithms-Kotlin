@@ -5,6 +5,7 @@ import com.github.eight0153.genetic_algorithms.engine.GameLogicManagerI
 import com.github.eight0153.genetic_algorithms.engine.Renderer
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
+import com.github.eight0153.genetic_algorithms.game.creatures.Creature
 import org.lwjgl.glfw.GLFW
 
 class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPopulation: Int = 100) :
@@ -13,6 +14,11 @@ class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPop
         get() = mapOf(
             Pair("F3", "Toggle population statistics")
         )
+
+    companion object {
+        const val MAX_CREATURES = 512
+    }
+
     private val creatures = ArrayList<Creature>()
     private val populationStatisticsLogger = PopulationStatisticsLogger()
 
@@ -36,27 +42,20 @@ class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPop
 
         var numBirths = 0
         var numDeaths = 0
-        val toRemove = ArrayList<Creature>()
-        val toAdd = ArrayList<Creature>()
 
-        for (creature in creatures) {
-            when {
-                creature.isDead -> {
-                    toRemove.add(creature)
-                    numDeaths++
-                }
-                creature.shouldReplicate -> {
-                    toAdd.add(Creature.create(creature.transform.translation))
-                    numBirths++
-                }
-            }
+        for (creature in creatures.filter { it.isDead }) {
+            creatures.remove(creature)
+            creature.cleanup()
+            numDeaths++
         }
 
-        creatures.addAll(toAdd)
+        for (creature in creatures.filter { it.shouldReplicate }) {
+            if (creatures.size + numBirths - numDeaths >= MAX_CREATURES) {
+                break
+            }
 
-        toRemove.forEach {
-            creatures.remove(it)
-            it.cleanup()
+            creatures.add(creature.replicate())
+            numBirths++
         }
 
         populationStatisticsLogger.update(delta, creatures.size, numBirths, numDeaths)

@@ -52,3 +52,31 @@ class Bounds3D(
         )
     }
 }
+
+class BoundsND(val numDimensions: Int) {
+    val min = Array(numDimensions) { Double.NEGATIVE_INFINITY }
+    val max = Array(numDimensions) { Double.POSITIVE_INFINITY }
+
+    fun contains(point: Array<Double>): Boolean {
+        for (i in 0 until point.size) {
+            if (point[i] < min[i] || point[i] > max[i]) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    fun clip(point: Array<Double>): Array<Double> {
+        for (i in 0 until point.size) {
+            point[i] = maxOf(min[i], minOf(point[i], max[i]))
+        }
+
+        return point
+    }
+
+    /** Generate a random point that lies within the [Bounds3D]. */
+    fun sample(): Array<Double> {
+        return Array(numDimensions) { Random.nextDouble(min[it], max[it]) }
+    }
+}

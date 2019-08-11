@@ -10,7 +10,7 @@ fun main() {
     val windowName = "Genetic Algorithms"
 
     val engine = Engine(
-        GameManager(Vector3f(64.0f, 16.0f, 64.0f)),
+        GameManager(Vector3f(128.0f, 32.0f, 128.0f)),
         windowName,
         windowSize = windowSize
     )
