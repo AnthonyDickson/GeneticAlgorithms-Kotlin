@@ -15,7 +15,7 @@ class Transform(
         Quaternionf(transform.rotation)
     )
 
-    val transformMatrix: Matrix4f get() = Matrix4f().scale(scale).rotate(rotation).translate(translation)
+    val transformMatrix: Matrix4f get() = Matrix4f().translate(translation).rotate(rotation).scale(scale)
 
     fun rotate(x: Float = 0f, y: Float = 0f, z: Float = 0f) {
         rotation.rotateXYZ(
