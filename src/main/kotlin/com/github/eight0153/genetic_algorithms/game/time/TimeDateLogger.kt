@@ -1,4 +1,4 @@
-package com.github.eight0153.genetic_algorithms.game
+package com.github.eight0153.genetic_algorithms.game.time
 
 class TimeDateLogger(
     private val onLog: () -> String,

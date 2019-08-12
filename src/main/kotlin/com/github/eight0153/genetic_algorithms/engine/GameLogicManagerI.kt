@@ -23,6 +23,13 @@ interface GameLogicManagerI {
     /** Perform an update step where [delta] is the seconds since the last frame. */
     fun update(delta: Double)
 
+    /**
+     * Perform anything that needs to be done after the last [update] and before the next [render] call.
+     *
+     * This may include remove objects that were marked for removal.
+     */
+    fun postUpdate()
+
     /** Render the game. */
     fun render(renderer: Renderer)
 

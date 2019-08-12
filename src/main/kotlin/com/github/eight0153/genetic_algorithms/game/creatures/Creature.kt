@@ -10,6 +10,7 @@ import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Compani
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.LIFE_EXPECTANCY
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.REPLICATION_CHANCE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SPEED
+import com.github.eight0153.genetic_algorithms.game.food.Food
 import org.joml.Vector3f
 import kotlin.random.Random
 
@@ -126,17 +127,20 @@ class Creature(
         )
     }
 
-    fun give(food: Food) {
-        // TODO: Allow creatures to stockpile food.
-        //  From this you could give creatures altruistic traits to share surplus food with certain creatures
-        //  (e.g. kin, species, particular traits). You could also give creatures short-term and long-term planning
-        //  traits that change how the creature balances short vs. long term gains. For example, a short-sighted
-        //  creature may just eat any food it picks up regardless of any long-term goals
-        // TODO: Give a chance for nearby creatures to challenge this creature for the food.
-        eat(food)
+    override fun onCollision(other: GameObject) {
+        if (other is Food) {
+            // TODO: Allow creatures to stockpile food.
+            //  From this you could give creatures altruistic traits to share surplus food with certain creatures
+            //  (e.g. kin, species, particular traits). You could also give creatures short-term and long-term planning
+            //  traits that change how the creature balances short vs. long term gains. For example, a short-sighted
+            //  creature may just eat any food it picks up regardless of any long-term goals
+            // TODO: Give a chance for nearby creatures to challenge this creature for the food.
+            eat(other)
+        }
     }
 
     fun eat(food: Food) {
+        food.consume()
         println("Yum!")
     }
 

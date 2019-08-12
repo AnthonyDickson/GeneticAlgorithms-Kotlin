@@ -86,12 +86,14 @@ class Renderer(
 
         val viewModel = Matrix4f()
 
-        for (gameObject in gameObjects.filter { it.shouldRender }) {
-            viewMatrix.mul(gameObject.modelMatrix, viewModel)
-            shaderProgram.setUniform("viewModel", viewModel)
-            shaderProgram.setUniform("material", gameObject.material)
+        for (gameObject in gameObjects) {
+            if (gameObject.shouldRender) {
+                viewMatrix.mul(gameObject.modelMatrix, viewModel)
+                shaderProgram.setUniform("viewModel", viewModel)
+                shaderProgram.setUniform("material", gameObject.material)
 
-            gameObject.render()
+                gameObject.render()
+            }
         }
 
         shaderProgram.unbind()

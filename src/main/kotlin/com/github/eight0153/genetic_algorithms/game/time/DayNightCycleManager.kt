@@ -1,4 +1,4 @@
-package com.github.eight0153.genetic_algorithms.game
+package com.github.eight0153.genetic_algorithms.game.time
 
 import com.github.eight0153.genetic_algorithms.engine.GameLogicManagerI
 import com.github.eight0153.genetic_algorithms.engine.Renderer
@@ -77,9 +77,9 @@ class DayNightCycleManager(
     private var timeSinceEpoch = 0.0
 
     // Getters for date.
-    private val years: Double get() = days / DAYS_PER_YEAR
-    private val months: Double get() = days / DAYS_PER_MONTH
-    private val days: Double get() = timeSinceEpoch / ONE_DAY
+    private val years: Double get() = (timeSinceEpoch / ONE_DAY) / DAYS_PER_YEAR + 1
+    private val months: Double get() = (years % 1) * MONTHS_PER_YEAR + 1
+    private val days: Double get() = (months % 1) * DAYS_PER_MONTH + 1
     private val hours: Double get() = (days % 1) * HOURS_PER_DAY
     private val minutes: Double get() = (hours % 1) * MINUTES_PER_HOUR
     private val seconds: Double get() = (minutes % 1) * SECONDS_PER_MINUTE
@@ -153,11 +153,9 @@ class DayNightCycleManager(
         }
 
         sunPosition.set(
-            Vector3f(
-                sin(timeOfDay).toFloat(),
-                cos(timeOfDay).toFloat(),
-                directionalLight.direction.z
-            )
+            sin(timeOfDay).toFloat(),
+            cos(timeOfDay).toFloat(),
+            directionalLight.direction.z
         )
 
         val skyColour = timeOfDayLerp(skyDawn, skyMidday, skyDusk, skyMidnight)
@@ -190,6 +188,7 @@ class DayNightCycleManager(
         }
     }
 
+    override fun postUpdate() {}
     override fun render(renderer: Renderer) {}
     override fun cleanup() {}
 }

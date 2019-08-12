@@ -1,4 +1,4 @@
-package com.github.eight0153.genetic_algorithms.game.creatures
+package com.github.eight0153.genetic_algorithms.game.food
 
 import com.github.eight0153.genetic_algorithms.engine.AABB
 import com.github.eight0153.genetic_algorithms.engine.GameObject
@@ -39,5 +39,9 @@ class Food(
                 createMaterial(colour)
             )
         }
+    }
+
+    fun consume() {
+        shouldRemove = true
     }
 }

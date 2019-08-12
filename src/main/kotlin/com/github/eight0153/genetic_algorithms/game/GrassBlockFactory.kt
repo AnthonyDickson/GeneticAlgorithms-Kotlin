@@ -15,6 +15,9 @@ object GrassBlockFactory {
     }
 
     fun create(): GameObject {
-        return GameObject(createMesh(), createMaterial())
+        return GameObject(
+            createMesh(),
+            createMaterial()
+        )
     }
 }

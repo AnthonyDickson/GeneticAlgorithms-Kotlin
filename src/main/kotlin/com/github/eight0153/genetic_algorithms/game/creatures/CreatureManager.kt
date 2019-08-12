@@ -1,11 +1,10 @@
-package com.github.eight0153.genetic_algorithms.game
+package com.github.eight0153.genetic_algorithms.game.creatures
 
 import com.github.eight0153.genetic_algorithms.engine.Bounds3D
 import com.github.eight0153.genetic_algorithms.engine.GameLogicManagerI
 import com.github.eight0153.genetic_algorithms.engine.Renderer
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
-import com.github.eight0153.genetic_algorithms.game.creatures.Creature
 import org.lwjgl.glfw.GLFW
 
 class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPopulation: Int = 100) :
@@ -43,23 +42,25 @@ class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPop
         var numBirths = 0
         var numDeaths = 0
 
-        for (creature in creatures.filter { it.isDead }) {
-            creatures.remove(creature)
-            creature.cleanup()
-            numDeaths++
-        }
+        val creatureIterator = creatures.listIterator()
 
-        for (creature in creatures.filter { it.shouldReplicate }) {
-            if (creatures.size + numBirths - numDeaths >= MAX_CREATURES) {
-                break
+        while (creatureIterator.hasNext()) {
+            val creature = creatureIterator.next()
+
+            if (creature.isDead) {
+                numDeaths++
+                creature.cleanup()
+                creatureIterator.remove()
+            } else if (creature.shouldReplicate && creatures.size + 1 <= MAX_CREATURES) {
+                numBirths++
+                creatureIterator.add(creature.replicate())
             }
-
-            creatures.add(creature.replicate())
-            numBirths++
         }
 
         populationStatisticsLogger.update(delta, creatures.size, numBirths, numDeaths)
     }
+
+    override fun postUpdate() {}
 
     override fun render(renderer: Renderer) {
         renderer.render(creatures)

@@ -4,7 +4,9 @@ import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.graphics.*
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
-import com.github.eight0153.genetic_algorithms.game.creatures.Food
+import com.github.eight0153.genetic_algorithms.game.creatures.CreatureManager
+import com.github.eight0153.genetic_algorithms.game.food.FoodManager
+import com.github.eight0153.genetic_algorithms.game.time.DayNightCycleManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
@@ -15,6 +17,8 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
 
     private var gameObjects = ArrayList<GameObject>()
     private var gameLogicManagers = ArrayList<GameLogicManagerI>()
+    private lateinit var foodManager: FoodManager
+    private lateinit var creatureManager: CreatureManager
 
     private lateinit var camera: Camera
     private lateinit var renderer: Renderer
@@ -63,8 +67,6 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
             }
         }
 
-        gameLogicManagers.add(CreatureManager(worldBounds))
-
         // Create a wall of blocks to test lighting on.
         val rows = 5
         val cols = 5
@@ -79,10 +81,6 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
                 gameObjects.add(testBlock)
             }
         }
-
-        gameObjects.add(
-            Food.create(Vector3f(0.0f, -0.25f, 5.0f))
-        )
 
         //==========//
         // Lighting //
@@ -159,6 +157,16 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
             )
         )
 
+        //============//
+        // Game Logic //
+        //============//
+
+        foodManager = FoodManager()
+        gameLogicManagers.add(foodManager)
+
+        creatureManager = CreatureManager(worldBounds)
+        gameLogicManagers.add(creatureManager)
+
         printInfo(windowName)
     }
 
@@ -230,17 +238,17 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         frameRateLogger.update(delta)
 
         handleCollisions()
+
+        gameLogicManagers.forEach { it.postUpdate() }
     }
 
-    fun handleCollisions() {
+    private fun handleCollisions() {
         // TODO: Implement some sort of space partitioning (e.g. uniform grid, k-d tree, binary space tree, octree).
-        for (food in gameObjects.filterIsInstance(Food::class.java)) {
-            // TODO: Implement a better way for accessing game objects between game logic managers.
-            for (creature in gameLogicManagers.filterIsInstance<CreatureManager>().first().creatures) {
+        for (food in foodManager.food) {
+            for (creature in creatureManager.creatures) {
                 if (food.boundingBox.intersects(creature.boundingBox)) {
-                    creature.give(food)
-                    gameObjects.remove(food)
-                    food.cleanup()
+                    food.onCollision(creature)
+                    creature.onCollision(food)
                 }
             }
         }

@@ -1,4 +1,4 @@
-package com.github.eight0153.genetic_algorithms.game
+package com.github.eight0153.genetic_algorithms.game.creatures
 
 // TODO: Abstract loggers (PopulationStatisticsLogger and FrameRateLogger share quite a bit of common structure and code)
 // TODO: Plot population statistics
