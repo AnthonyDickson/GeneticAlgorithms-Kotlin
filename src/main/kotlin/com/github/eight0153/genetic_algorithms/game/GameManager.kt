@@ -81,7 +81,7 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         }
 
         gameObjects.add(
-            Food.create(Vector3f(0.0f, -0.5f, 5.0f))
+            Food.create(Vector3f(0.0f, -0.25f, 5.0f))
         )
 
         //==========//
@@ -237,8 +237,6 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         for (food in gameObjects.filterIsInstance(Food::class.java)) {
             // TODO: Implement a better way for accessing game objects between game logic managers.
             for (creature in gameLogicManagers.filterIsInstance<CreatureManager>().first().creatures) {
-                // TODO: Fix this! Currently collision detection doesn't work as expected.
-                //  Check that bounding boxes are being created as expected and that they are updated as expeced.
                 if (food.boundingBox.intersects(creature.boundingBox)) {
                     creature.give(food)
                     gameObjects.remove(food)

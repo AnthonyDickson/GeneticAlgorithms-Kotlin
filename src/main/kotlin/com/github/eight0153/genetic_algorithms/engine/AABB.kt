@@ -4,11 +4,12 @@ import org.joml.Vector3f
 
 /** An axis-aligned bounding box. */
 class AABB(
-    private val transform: Transform = Transform(),
-    private val size: Vector3f = Vector3f(1.0f)
+    val transform: Transform = Transform(),
+    val size: Vector3f = Vector3f(1.0f)
 ) {
-    private val min: Vector3f get() = transform.translation
-    private val max: Vector3f get() = transform.translation.add(size, Vector3f())
+    private val halfSize = Vector3f(size).mul(0.5f)
+    private val min: Vector3f get() = transform.translation.sub(halfSize, Vector3f())
+    private val max: Vector3f get() = transform.translation.add(halfSize, Vector3f())
 
     fun contains(point: Vector3f): Boolean {
         return (min.x <= point.x && point.x <= max.x) &&
