@@ -20,6 +20,10 @@ class Engine(
     private val targetFrameTime: Float = 1 / 60f,
     backgroundColour: Vector3f = Vector3f()
 ) {
+    companion object {
+        val ticker = Ticker()
+    }
+
     /** An error callback that will print GLFW error messages to System.err. */
     private val errorCallback: GLFWErrorCallback? = glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err))
     private val window: Long
@@ -94,6 +98,7 @@ class Engine(
 
             // Update game state while we have time.
             while (processingTime >= targetFrameTime) {
+                ticker.update(delta)
                 gameManager.update(delta)
                 processingTime -= targetFrameTime
             }
