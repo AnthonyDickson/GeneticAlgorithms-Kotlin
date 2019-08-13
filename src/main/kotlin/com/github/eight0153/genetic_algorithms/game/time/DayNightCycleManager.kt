@@ -67,6 +67,8 @@ class DayNightCycleManager(
     /** The direction of the sun in 3D space. */
     private val sunPosition: Vector3f = Vector3f(directionalLight.direction)
 
+    private val minSunLightIntensity = 0.25f // out of 1.0f
+
     /**
      * Measures the time of day like a clock.
      *
@@ -166,11 +168,15 @@ class DayNightCycleManager(
         ambientLight.set(ambientColour)
         directionalLight.direction.set(sunPosition.x, abs(sunPosition.y), sunPosition.z)
         directionalLight.colour.set(lightColour)
-        // TODO: Rewrite with more general wave formula?? It would be nice to have a proper function rather than
-        //  some magic numbers...
-        // Scale and shift s.t. intensity in the interval [0.25, 1.0]
-        directionalLight.intensity = -sunPosition.y * 0.375f + 0.625f
+        // Take negative of sunPosition.y since at t=0 (midnight) we want to minimise light intensity and cosine at
+        // t=0 starts at one.
+        directionalLight.intensity = scaleAndShift(-sunPosition.y, -1.0f, 1.0f, minSunLightIntensity, 1.0f)
         glClearColor(skyColour.x, skyColour.y, skyColour.z, 1.0f)
+    }
+
+    /** Scale and shift the value [x] from the interval [min1, max1] to the interval [min2, max2]. */
+    private fun scaleAndShift(x: Float, min1: Float, max1: Float, min2: Float, max2: Float): Float {
+        return ((max2 - min2) / (max1 - min1)) * (x + min1) + max2
     }
 
     /** Linearly interpolate between colours based on the time of day. */
