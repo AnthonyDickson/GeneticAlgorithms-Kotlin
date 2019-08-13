@@ -18,6 +18,7 @@ class Food(
     private val fillingness: Double = 1.0
 ) : GameObject(mesh, material, transform, boundingBox) {
     companion object {
+        // TODO: Create apple mesh + texture
         fun createMesh(): Mesh {
             return ResourcePool.getMesh("/models/cube.obj")
         }
@@ -30,11 +31,8 @@ class Food(
             )
         }
 
-        fun create(
-            position: Vector3f = Vector3f(0.0f, 0.25f, 0.0f),
-            colour: Vector3f? = null
-        ): Food {
-            val transform = Transform(position, 0.5f)
+        fun create(colour: Vector3f? = null): Food {
+            val transform = Transform(Vector3f(0.0f, 0.25f, 0.0f), 0.5f)
             return Food(
                 transform,
                 AABB(transform, Vector3f(transform.scale)),

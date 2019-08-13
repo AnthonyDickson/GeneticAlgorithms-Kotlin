@@ -12,13 +12,12 @@ import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import kotlin.math.cos
 
-// TODO: Implement 'onTick' event that is propagated to the loggers, game logic managers and the game objects.
-
 class GameManager(private val worldSize: Vector3f) : GameManagerI {
     private val frameRateLogger = FrameRateLogger()
 
     private var gameObjects = ArrayList<GameObject>()
     private var gameLogicManagers = ArrayList<GameLogicManagerI>()
+
     private lateinit var foodManager: FoodManager
     private lateinit var creatureManager: CreatureManager
 
@@ -162,8 +161,7 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         //============//
         // Game Logic //
         //============//
-
-        foodManager = FoodManager()
+        foodManager = FoodManager(worldBounds, 128)
         gameLogicManagers.add(foodManager)
 
         creatureManager = CreatureManager(worldBounds)
