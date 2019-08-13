@@ -6,6 +6,7 @@ import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.joml.Vector3f
 
+// TODO: Spawn food periodically
 class FoodManager : GameLogicManagerI {
     val food = ArrayList<Food>()
 

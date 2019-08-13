@@ -12,7 +12,10 @@ class Food(
     transform: Transform,
     boundingBox: AABB = AABB(transform),
     mesh: Mesh,
-    material: Material
+    material: Material,
+    /** How filling the piece of food is. */
+    // TODO: Not all food is made equal? Make fillingness slightly random?
+    private val fillingness: Double = 1.0
 ) : GameObject(mesh, material, transform, boundingBox) {
     companion object {
         fun createMesh(): Mesh {
@@ -41,7 +44,10 @@ class Food(
         }
     }
 
-    fun consume() {
+    /** Consume this piece of food (removes the game object) and return how filling it is (how much hunger it removes). */
+    fun consume(): Double {
         shouldRemove = true
+
+        return fillingness
     }
 }
