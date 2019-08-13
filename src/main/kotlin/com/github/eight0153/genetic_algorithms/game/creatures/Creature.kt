@@ -7,12 +7,18 @@ import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Compani
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.COLOUR_GREEN
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.COLOUR_RED
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.DEATH_CHANCE
+import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.IMMUNITY_STRENGTH
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.LIFE_EXPECTANCY
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.METABOLIC_EFFICIENCY
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.REPLICATION_CHANCE
+import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SENSORY_RANGE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SPEED
 import com.github.eight0153.genetic_algorithms.game.food.Food
+import com.github.eight0153.genetic_algorithms.game.food.FoodManager
 import org.joml.Vector3f
+import java.lang.Math.pow
+import kotlin.math.ln
+import kotlin.math.log
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -43,7 +49,7 @@ class Creature(
             chromosome[COLOUR_BLUE].toFloat()
         )
     )
-) : GameObject(mesh, material, transform, boundingBox) {
+) : GameObject(mesh, material, transform, boundingBox), TickerSubscriberI {
     companion object {
         fun createMesh(): Mesh {
             return ResourcePool.getMesh("/models/cube.obj")
@@ -89,7 +95,7 @@ class Creature(
         Vector3f(chromosome[SPEED].toFloat())
     )
     private var age = 0.0
-    // TODO: Increase hunger on tick and on movement.
+    // TODO: Increase hunger on movement.
     private var hunger = 0.0
     // TODO: Implement a thirstiness mechanic
 //    private var thirstiness = 0.0
@@ -100,37 +106,83 @@ class Creature(
      */
     private var healthiness = 1.0
 
-    override fun update(delta: Double) {
-        super.update(delta)
-        age += delta
+    private var target: Food? = null
+    private var targetPosition: Vector3f = Vector3f()
 
-        if (!isDead) {
-            velocity.add(
-                (Random.nextDouble(-1.0, 1.0)).toFloat(),
-                0.0f,
-                (Random.nextDouble(-1.0, 1.0)).toFloat()
+    init {
+        Engine.ticker.subscribe(this)
+    }
+
+    override fun onTick() {
+        if (energy <= 0 || Random.nextFloat() < chromosome[DEATH_CHANCE] + age / chromosome[LIFE_EXPECTANCY] * -ln(
+                healthiness
+            )
+        ) {
+            isDead = true
+            return
+        }
+
+        shouldReplicate = false
+        hunger += 1.0 * (1.0 / chromosome[METABOLIC_EFFICIENCY])
+        energy -= log(1 + hunger, 10.0)
+
+        if (age > 20 && energy > 50 && Random.nextFloat() < (1.0 - chromosome[IMMUNITY_STRENGTH]) * (1.0 - (energy / MAX_ENERGY))) {
+            healthiness = max(healthiness - (0.1 * pow(1.0 - chromosome[IMMUNITY_STRENGTH], 2.0)), 0.01)
+        }
+
+        if (Random.nextFloat() < chromosome[REPLICATION_CHANCE] * (energy / MAX_ENERGY)) {
+            shouldReplicate = true
+        }
+
+        gatherFood()
+    }
+
+    private fun gatherFood() {
+        if (target == null || target!!.wasEaten) {
+            val closestFood: List<Pair<Food, Float>> = FoodManager.closestFoodTo(
+                transform.translation,
+                chromosome[SENSORY_RANGE].toFloat()
             )
 
-            velocityBounds.clip(velocity)
-
-            transform.translate((velocity.x * delta).toFloat(), 0.0f, (velocity.z * delta).toFloat())
-            // TODO: Decrease energy based on size, mass, speed and metabolic efficiency.
-
-            // TODO: Decrease healthiness with random probability proportional to hunger, low energy and
-            //  susceptibility to sickness. Scale this based on low energy and high hunger.
-
-            if (Random.nextFloat() < chromosome[DEATH_CHANCE] * delta * age / chromosome[LIFE_EXPECTANCY] + (1.0 - healthiness) / healthiness) {
-                isDead = true
-            } else if (Random.nextFloat() < chromosome[REPLICATION_CHANCE] *
-                delta * chromosome[LIFE_EXPECTANCY] / (0.1 * age + chromosome[LIFE_EXPECTANCY])
-            ) {
-                shouldReplicate = true
+            if (closestFood.isNotEmpty()) {
+                val i = Random.nextInt(closestFood.size)
+                target = closestFood[i].first
+                targetPosition = closestFood[i].first.transform.translation
+            } else {
+                target = null
+                targetPosition.set(
+                    (transform.translation.x + (if (Random.nextFloat() < 0.5) -1 else 1) * chromosome[SENSORY_RANGE]).toFloat(),
+                    0.0f,
+                    (transform.translation.y + (if (Random.nextFloat() < 0.5) -1 else 1) * chromosome[SENSORY_RANGE]).toFloat()
+                )
             }
         }
     }
 
+    override fun update(delta: Double) {
+        super.update(delta)
+        age += delta
+
+        val step = Vector3f()
+        targetPosition.sub(transform.translation, step)
+
+        step.y = 0.0f
+        step.normalize()
+
+        if (step.length() > chromosome[SPEED] * delta) {
+            step.normalize((chromosome[SPEED] * delta).toFloat())
+        } else if (step.length() < 1.0f) {
+            step.zero()
+        }
+
+        transform.translate(step)
+        // TODO: Decrease energy based on size, mass and speed.
+        energy -= delta * 0.1 * chromosome[SPEED]
+    }
+
     fun replicate(): Creature {
         shouldReplicate = false
+        energy -= 20
 
         val chromosome = Chromosome(chromosome)
         chromosome.mutate()
@@ -170,6 +222,10 @@ class Creature(
         hunger = max(0.0, hunger - food.consume())
         // TODO: Increase creature size when eating food at max energy and min hunger? Greedy creatures get fat???
         energy = min(energy + food.consume() * chromosome[METABOLIC_EFFICIENCY], MAX_ENERGY)
+    }
+
+    override fun cleanup() {
+        Engine.ticker.unsubscribe(this)
     }
 
 }

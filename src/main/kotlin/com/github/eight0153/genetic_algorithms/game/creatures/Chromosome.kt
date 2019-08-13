@@ -13,7 +13,7 @@ class Chromosome {
     companion object {
         // Define mappings here
         // TODO: Find a way to automatically calculate how many genes there are.
-        const val NUM_GENES = 9
+        const val NUM_GENES = 11
 
         val geneValueBounds = BoundsND(NUM_GENES)
 
@@ -38,19 +38,23 @@ class Chromosome {
         const val COLOUR_BLUE = 0x7
         /** How efficient a creature is at digesting food. */
         const val METABOLIC_EFFICIENCY = 0x8
+        /** How susceptible to getting sick a creature is. */
+        const val IMMUNITY_STRENGTH = 0x9
+        /** The distance a creature can sense objects. */
+        const val SENSORY_RANGE = 0xa
 
         init {
             geneValueBounds.min[REPLICATION_CHANCE] = 0.01
             geneValueBounds.max[REPLICATION_CHANCE] = 0.1
 
             geneValueBounds.min[DEATH_CHANCE] = 0.01
-            geneValueBounds.max[DEATH_CHANCE] = 1.0
+            geneValueBounds.max[DEATH_CHANCE] = 0.1
 
             geneValueBounds.min[MUTATION_CHANCE] = 0.0
             geneValueBounds.max[MUTATION_CHANCE] = 1.0
 
             geneValueBounds.min[LIFE_EXPECTANCY] = 1.0
-            geneValueBounds.max[LIFE_EXPECTANCY] = 100.0
+            geneValueBounds.max[LIFE_EXPECTANCY] = 60.0
 
             geneValueBounds.min[SPEED] = 1.0
             geneValueBounds.max[SPEED] = 4.0
@@ -64,6 +68,12 @@ class Chromosome {
 
             geneValueBounds.min[METABOLIC_EFFICIENCY] = 0.0
             geneValueBounds.max[METABOLIC_EFFICIENCY] = 2.0
+
+            geneValueBounds.min[IMMUNITY_STRENGTH] = 0.0
+            geneValueBounds.max[IMMUNITY_STRENGTH] = 1.0
+
+            geneValueBounds.min[SENSORY_RANGE] = 0.0
+            geneValueBounds.max[SENSORY_RANGE] = 32.0
         }
     }
 

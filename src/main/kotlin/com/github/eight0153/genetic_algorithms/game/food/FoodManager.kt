@@ -3,19 +3,48 @@ package com.github.eight0153.genetic_algorithms.game.food
 import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
+import org.joml.Vector3f
 
 // TODO: Spawn food periodically
-class FoodManager(
-    private val worldBounds: Bounds3D,
-    /** The maximum number of pieces of food to have spawned at once. */
-    private val maxFood: Int = 10
-) : GameLogicManagerI, TickerSubscriberI {
-    val food = ArrayList<Food>(maxFood)
+object FoodManager : GameLogicManagerI, TickerSubscriberI {
+    private var maxFood: Int = 0
+    private var spawnRate: Int = 1
+    private var foodFillingness: Double = 1.0
 
-    init {
-        repeat(maxFood) { food[it] = Food.create() }
+    lateinit var food: ArrayList<Food>
+    private lateinit var worldBounds: Bounds3D
+
+    fun init(
+        worldBounds: Bounds3D,
+        /** The maximum number of pieces of food to have spawned at once. */
+        maxFood: Int = 10,
+        spawnRate: Int = 1,
+        foodFillingness: Double = 1.0
+    ) {
+        this.worldBounds = worldBounds
+        this.maxFood = maxFood
+        this.spawnRate = spawnRate
+        this.foodFillingness = foodFillingness
+
+        food = ArrayList(maxFood)
+        repeat(maxFood) { spawnFood() }
 
         Engine.ticker.subscribe(this)
+    }
+
+    private fun spawnFood() {
+        val position = worldBounds.sample()
+        val food = Food.create(fillingness = foodFillingness)
+        food.transform.translate(x = position.x, z = position.z)
+
+        this.food.add(food)
+    }
+
+    fun closestFoodTo(point: Vector3f, range: Float): List<Pair<Food, Float>> {
+        val distance = Vector3f()
+        val foodInRange = food.map { it to it.transform.translation.sub(point, distance).length() }
+
+        return foodInRange.filter { it.second <= range }.sortedBy { it.second }.take(5)
     }
 
     override val controls: Map<String, String>
@@ -26,12 +55,11 @@ class FoodManager(
     }
 
     override fun onTick() {
-        if (food.size < maxFood) {
-            val position = worldBounds.sample()
-            val food = Food.create()
-            food.transform.translate(x = position.x, z = position.z)
+        var added = 0
 
-            this.food.add(food)
+        while (added < spawnRate && food.size < maxFood) {
+            spawnFood()
+            added++
         }
     }
 

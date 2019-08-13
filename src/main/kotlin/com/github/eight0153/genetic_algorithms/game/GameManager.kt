@@ -18,7 +18,6 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
     private var gameObjects = ArrayList<GameObject>()
     private var gameLogicManagers = ArrayList<GameLogicManagerI>()
 
-    private lateinit var foodManager: FoodManager
     private lateinit var creatureManager: CreatureManager
 
     private lateinit var camera: Camera
@@ -161,8 +160,8 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         //============//
         // Game Logic //
         //============//
-        foodManager = FoodManager(worldBounds, 128)
-        gameLogicManagers.add(foodManager)
+        FoodManager.init(worldBounds, 256, 10, 10.0)
+        gameLogicManagers.add(FoodManager)
 
         creatureManager = CreatureManager(worldBounds)
         gameLogicManagers.add(creatureManager)
@@ -244,7 +243,7 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
 
     private fun handleCollisions() {
         // TODO: Implement some sort of space partitioning (e.g. uniform grid, k-d tree, binary space tree, octree).
-        for (food in foodManager.food) {
+        for (food in FoodManager.food) {
             for (creature in creatureManager.creatures) {
                 if (food.boundingBox.intersects(creature.boundingBox)) {
                     food.onCollision(creature)
