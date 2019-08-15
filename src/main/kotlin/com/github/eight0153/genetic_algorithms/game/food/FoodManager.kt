@@ -41,10 +41,9 @@ object FoodManager : GameLogicManagerI, TickerSubscriberI {
     }
 
     fun closestFoodTo(point: Vector3f, range: Float): List<Pair<Food, Float>> {
-        val distance = Vector3f()
-        val foodInRange = food.map { it to it.transform.translation.sub(point, distance).length() }
+        val foodInRange = food.map { it to it.transform.translation.distance(point) }
 
-        return foodInRange.filter { it.second <= range }.sortedBy { it.second }.take(5)
+        return foodInRange.filter { it.second <= range }.sortedBy { it.second }.take(3)
     }
 
     override val controls: Map<String, String>
@@ -71,7 +70,7 @@ object FoodManager : GameLogicManagerI, TickerSubscriberI {
         while (foodIterator.hasNext()) {
             val food = foodIterator.next()
 
-            if (food.shouldRemove) {
+            if (food.shouldRemove || food.wasPickedUp) {
                 food.cleanup()
                 foodIterator.remove()
             }

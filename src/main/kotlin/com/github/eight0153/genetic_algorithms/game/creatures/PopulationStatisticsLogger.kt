@@ -1,13 +1,15 @@
 package com.github.eight0153.genetic_algorithms.game.creatures
 
+import com.github.eight0153.genetic_algorithms.engine.Engine
+import com.github.eight0153.genetic_algorithms.engine.TickerSubscriberI
+
 // TODO: Abstract loggers (PopulationStatisticsLogger and FrameRateLogger share quite a bit of common structure and code)
 // TODO: Plot population statistics
 class PopulationStatisticsLogger(
-    /** How often to print log messages in seconds (can be fractional). */
-    private val logFrequency: Double = 1.0,
     /** The constant smoothing factor for updating [averagePopulation]. */
     private val alpha: Double = 0.99
-) {
+) : TickerSubscriberI {
+    private var population: Int = 0
     private var populationGrowthRate: Double = 0.0
     private var populationGrowth: Int = 0
     private var totalDeaths: Int = 0
@@ -16,8 +18,6 @@ class PopulationStatisticsLogger(
     private var numDeaths: Int = 0
     /** Whether or not to log the population statistics. */
     private var isEnabled = false
-    /** The amount of time since the last log message was printed. */
-    private var timeSinceLastLog = 0.0
     /** The exponential moving average of the population. */
     private var averagePopulation = 0.0
     private var averagePopulationGrowth = 0.0
@@ -25,17 +25,16 @@ class PopulationStatisticsLogger(
 
     init {
         assert(0 < alpha && alpha < 1) { "Alpha must be a value in the range (0, 1), but got $alpha." }
+
+        Engine.ticker.subscribe(this)
     }
 
     fun update(
-        delta: Double,
         population: Int,
         numBirths: Int,
         numDeaths: Int
     ) {
-        timeSinceLastLog += delta
-
-
+        this.population = population
         this.numDeaths += numDeaths
         this.numBirths += numBirths
         totalDeaths += numDeaths
@@ -46,14 +45,14 @@ class PopulationStatisticsLogger(
         averagePopulation = alpha * averagePopulation + (1 - alpha) * population
         averagePopulationGrowth = alpha * averagePopulationGrowth + (1 - alpha) * populationGrowth
         averagePopulationGrowthRate = alpha * averagePopulationGrowthRate + (1 - alpha) * populationGrowthRate
+    }
 
-
-        if (isEnabled && timeSinceLastLog >= logFrequency) {
-            timeSinceLastLog = 0.0
+    override fun onTick() {
+        if (isEnabled) {
             // TODO: Draw this via OpenGL rather than logging
 
             print(
-                "\rPopulation: $population (Avg:  %.1f) - ".format(averagePopulation) +
+                "\rPopulation: ${population} (Avg:  %.1f) - ".format(averagePopulation) +
                         "Growth: $populationGrowth (Avg. %.1f) - ".format(averagePopulationGrowth) +
                         "Growth Rate: %.3f (Avg. %.3f) - ".format(populationGrowthRate, averagePopulationGrowthRate) +
                         "Deaths: ${this.numDeaths} ($totalDeaths total) - Births: ${this.numBirths} ($totalBirths total)"

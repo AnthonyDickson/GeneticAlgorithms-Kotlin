@@ -17,6 +17,7 @@ class Food(
     // TODO: Not all food is made equal? Make fillingness slightly random?
     private val fillingness: Double = 1.0
 ) : GameObject(mesh, material, transform, boundingBox) {
+    var wasPickedUp: Boolean = false
     var wasEaten: Boolean = false
 
     companion object {
@@ -48,8 +49,13 @@ class Food(
     /** Consume this piece of food (removes the game object) and return how filling it is (how much hunger it removes). */
     fun consume(): Double {
         shouldRemove = true
-        wasEaten = true
 
-        return fillingness
+        return if (wasEaten) {
+            0.0
+        } else {
+            wasEaten = true
+
+            fillingness
+        }
     }
 }

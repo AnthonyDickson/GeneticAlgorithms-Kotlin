@@ -13,6 +13,11 @@ import org.lwjgl.glfw.GLFW
 import kotlin.math.cos
 
 class GameManager(private val worldSize: Vector3f) : GameManagerI {
+    companion object {
+        // TODO: Refactor this into a shared 'world' object that contains info on the game world
+        var worldBounds: Bounds3D = Bounds3D()
+    }
+
     private val frameRateLogger = FrameRateLogger()
 
     private var gameObjects = ArrayList<GameObject>()
@@ -160,10 +165,10 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         //============//
         // Game Logic //
         //============//
-        FoodManager.init(worldBounds, 256, 10, 10.0)
+        FoodManager.init(worldBounds, 128, 4, 100.0)
         gameLogicManagers.add(FoodManager)
 
-        creatureManager = CreatureManager(worldBounds)
+        creatureManager = CreatureManager(worldBounds, 64)
         gameLogicManagers.add(creatureManager)
 
         printInfo(windowName)

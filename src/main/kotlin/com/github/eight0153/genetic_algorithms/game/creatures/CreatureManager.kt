@@ -1,21 +1,19 @@
 package com.github.eight0153.genetic_algorithms.game.creatures
 
-import com.github.eight0153.genetic_algorithms.engine.Bounds3D
-import com.github.eight0153.genetic_algorithms.engine.GameLogicManagerI
-import com.github.eight0153.genetic_algorithms.engine.Renderer
+import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import org.lwjgl.glfw.GLFW
 
 class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPopulation: Int = 100) :
-    GameLogicManagerI {
+    GameLogicManagerI, TickerSubscriberI {
     override val controls: Map<String, String>
         get() = mapOf(
             Pair("F3", "Toggle population statistics")
         )
 
     companion object {
-        const val MAX_CREATURES = 512
+        const val MAX_CREATURES = 5192
     }
 
     val creatures = ArrayList<Creature>()
@@ -23,6 +21,7 @@ class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPop
 
     init {
         repeat(initialPopulation) { creatures.add(Creature.create(worldBounds.sample())) }
+        Engine.ticker.subscribe(this)
     }
 
     override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
@@ -33,12 +32,7 @@ class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPop
         return true
     }
 
-    override fun update(delta: Double) {
-        creatures.forEach {
-            it.update(delta)
-            worldBounds.clip(it.transform.translation)
-        }
-
+    override fun onTick() {
         var numBirths = 0
         var numDeaths = 0
 
@@ -57,7 +51,14 @@ class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPop
             }
         }
 
-        populationStatisticsLogger.update(delta, creatures.size, numBirths, numDeaths)
+        populationStatisticsLogger.update(creatures.size, numBirths, numDeaths)
+    }
+
+    override fun update(delta: Double) {
+        creatures.forEach {
+            it.update(delta)
+            worldBounds.clip(it.transform.translation)
+        }
     }
 
     override fun postUpdate() {}
@@ -68,5 +69,7 @@ class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPop
 
     override fun cleanup() {
         creatures.forEach { it.cleanup() }
+
+        Engine.ticker.unsubscribe(this)
     }
 }

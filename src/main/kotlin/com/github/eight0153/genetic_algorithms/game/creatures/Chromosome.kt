@@ -12,11 +12,6 @@ class Chromosome {
     //  or healthiness decreasing)?
     companion object {
         // Define mappings here
-        // TODO: Find a way to automatically calculate how many genes there are.
-        const val NUM_GENES = 11
-
-        val geneValueBounds = BoundsND(NUM_GENES)
-
         /** How likely a creature is to replicate. */
         const val REPLICATION_CHANCE = 0x0
         /** How likely a creature is to die.
@@ -26,35 +21,37 @@ class Chromosome {
         const val DEATH_CHANCE = 0x1
         /** How likely each gene is to undergo mutation during replication. */
         const val MUTATION_CHANCE = 0x2
-        /** How many seconds (in real time) a creature is expected to live for. */
-        const val LIFE_EXPECTANCY = 0x3
         /** How fast a creature can move. Gotta go fast. Zoom zoom! */
-        const val SPEED = 0x4
+        const val SPEED = 0x3
         /** The red component of a creature's colour. */
-        const val COLOUR_RED = 0x5
+        const val COLOUR_RED = 0x4
         /** The green component of a creature's colour. */
-        const val COLOUR_GREEN = 0x6
+        const val COLOUR_GREEN = 0x5
         /** The blue component of a creature's colour. */
-        const val COLOUR_BLUE = 0x7
+        const val COLOUR_BLUE = 0x6
         /** How efficient a creature is at digesting food. */
-        const val METABOLIC_EFFICIENCY = 0x8
-        /** How susceptible to getting sick a creature is. */
-        const val IMMUNITY_STRENGTH = 0x9
+        const val METABOLIC_EFFICIENCY = 0x7
         /** The distance a creature can sense objects. */
-        const val SENSORY_RANGE = 0xa
+        const val SENSORY_RANGE = 0x8
+        /** How greedy a creature is. */
+        const val GREEDINESS = 0x9
+        /** How likely a creature is likely to prioritise long-term planning over short-term planning. */
+        const val THRIFTINESS = 0xa
+
+        // TODO: Find a way to automatically calculate how many genes there are.
+        const val NUM_GENES = 11
+
+        val geneValueBounds = BoundsND(NUM_GENES)
 
         init {
-            geneValueBounds.min[REPLICATION_CHANCE] = 0.01
-            geneValueBounds.max[REPLICATION_CHANCE] = 0.1
+            geneValueBounds.min[REPLICATION_CHANCE] = 0.0
+            geneValueBounds.max[REPLICATION_CHANCE] = 1.0
 
-            geneValueBounds.min[DEATH_CHANCE] = 0.01
-            geneValueBounds.max[DEATH_CHANCE] = 0.1
+            geneValueBounds.min[DEATH_CHANCE] = 0.001
+            geneValueBounds.max[DEATH_CHANCE] = 1.0
 
             geneValueBounds.min[MUTATION_CHANCE] = 0.0
             geneValueBounds.max[MUTATION_CHANCE] = 1.0
-
-            geneValueBounds.min[LIFE_EXPECTANCY] = 1.0
-            geneValueBounds.max[LIFE_EXPECTANCY] = 60.0
 
             geneValueBounds.min[SPEED] = 1.0
             geneValueBounds.max[SPEED] = 4.0
@@ -66,14 +63,17 @@ class Chromosome {
             geneValueBounds.min[COLOUR_BLUE] = 0.0
             geneValueBounds.max[COLOUR_BLUE] = 1.0
 
-            geneValueBounds.min[METABOLIC_EFFICIENCY] = 0.0
+            geneValueBounds.min[METABOLIC_EFFICIENCY] = 0.1
             geneValueBounds.max[METABOLIC_EFFICIENCY] = 2.0
-
-            geneValueBounds.min[IMMUNITY_STRENGTH] = 0.0
-            geneValueBounds.max[IMMUNITY_STRENGTH] = 1.0
 
             geneValueBounds.min[SENSORY_RANGE] = 0.0
             geneValueBounds.max[SENSORY_RANGE] = 32.0
+
+            geneValueBounds.min[GREEDINESS] = 0.0
+            geneValueBounds.max[GREEDINESS] = 1.0
+
+            geneValueBounds.min[THRIFTINESS] = 0.0
+            geneValueBounds.max[THRIFTINESS] = 1.0
         }
     }
 

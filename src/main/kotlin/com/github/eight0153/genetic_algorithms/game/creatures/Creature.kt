@@ -3,21 +3,21 @@ package com.github.eight0153.genetic_algorithms.game.creatures
 import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.graphics.Material
 import com.github.eight0153.genetic_algorithms.engine.graphics.Mesh
+import com.github.eight0153.genetic_algorithms.game.GameManager
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.COLOUR_BLUE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.COLOUR_GREEN
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.COLOUR_RED
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.DEATH_CHANCE
-import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.IMMUNITY_STRENGTH
-import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.LIFE_EXPECTANCY
+import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.GREEDINESS
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.METABOLIC_EFFICIENCY
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.REPLICATION_CHANCE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SENSORY_RANGE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SPEED
+import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.THRIFTINESS
+import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.geneValueBounds
 import com.github.eight0153.genetic_algorithms.game.food.Food
 import com.github.eight0153.genetic_algorithms.game.food.FoodManager
 import org.joml.Vector3f
-import java.lang.Math.pow
-import kotlin.math.ln
 import kotlin.math.log
 import kotlin.math.max
 import kotlin.math.min
@@ -31,12 +31,11 @@ import kotlin.random.Random
 //  bravery/cowardice, altruism and greediness could affect the probability that a creature concedes or accepts the 'duel'.
 // TODO: Give creatures a sensory range and make them move towards food and perhaps away from threatening creatures
 //  (predators,  stronger creatures etc.)
-// TODO: Implement a simple search algorithm for creatures. This could be:
-//   Pick a point within the creatures sensory range, move to that point, check for food, move towards food if
-//   found, otherwise start again.
 // TODO: Make creatures with low metabolism (new gene?) to get less energy from food which is spread over a
 //  period of time and hunger slower, and creatures with a high metabolism to get a higher instantaneous energy
 //  boost from food but hunger quicker.
+// TODO: Make creatures mate with each other. Once a creature has built up a stockpile of food it could then start
+//  looking for a mate.
 class Creature(
     private val chromosome: Chromosome = Chromosome(),
     transform: Transform = Transform(),
@@ -84,110 +83,71 @@ class Creature(
             return creature
         }
 
+        /** What is considered 100% energy. Note: A creatures energy may actually exceed this value. */
         private const val MAX_ENERGY = 100.0
     }
 
-    var isDead = false
-    var shouldReplicate: Boolean = false
-    private val velocity = Vector3f()
-    private val velocityBounds = Bounds3D(
-        Vector3f(-chromosome[SPEED].toFloat()),
-        Vector3f(chromosome[SPEED].toFloat())
-    )
+    /** A creature should scout if there is no food nearby (i.e. it cannot find food nearby). */
+    private val shouldScout: Boolean
+        get() = target == null && destination == null
+
+
     private var age = 0.0
-    // TODO: Increase hunger on movement.
     private var hunger = 0.0
     // TODO: Implement a thirstiness mechanic
 //    private var thirstiness = 0.0
     private var energy = MAX_ENERGY
-    /** How healthy the creature is as a number from 0.0 (dead) to 1.0 (super healthy).
-     *
-     * The less health the more likely the creature is to die.
-     */
-    private var healthiness = 1.0
 
     private var target: Food? = null
-    private var targetPosition: Vector3f = Vector3f()
+    private var destination: Vector3f? = null
+    // TODO: Allow a creature to stockpile more than one food
+    private var heldFood: Food? = null
+
+    val isDead: Boolean
+        get() = energy <= 0 || Random.nextFloat() < chromosome[DEATH_CHANCE]
+
+    private val isGreedy: Boolean
+        get() = chromosome[GREEDINESS] > 0.5 * geneValueBounds.max[GREEDINESS]
+
+    /** Creatures will replicate subject to stockpiled food, energy levels and random chance. */
+    val shouldReplicate: Boolean
+        get() = energy > MAX_ENERGY && Random.nextFloat() < chromosome[REPLICATION_CHANCE]
+
+    // TODO: Make thrifty creatures stockpile more food before resting
+    /** Creatures will rest if they have saved up enough energy, have some food in reserve and they are not greedy. */
+    private val shouldRest: Boolean
+        get() = energy > MAX_ENERGY && heldFood != null && !isGreedy
+
+    /** Creatures will look for food if it does not have a valid target or destination. */
+    private val shouldLookForFood: Boolean
+        get() = (target == null || target!!.wasEaten || target!!.wasPickedUp)
+
+    /** Creatures will move if they have a valid destination. */
+    private val shouldMove: Boolean
+        get() = destination != null
 
     init {
         Engine.ticker.subscribe(this)
     }
 
     override fun onTick() {
-        if (energy <= 0 || Random.nextFloat() < chromosome[DEATH_CHANCE] + age / chromosome[LIFE_EXPECTANCY] * -ln(
-                healthiness
-            )
-        ) {
-            isDead = true
-            return
+        age += 1
+
+        if (heldFood != null && energy < 0.5 * MAX_ENERGY) {
+            eat(heldFood!!)
+            heldFood!!.cleanup()
+            heldFood = null
         }
 
-        shouldReplicate = false
         hunger += 1.0 * (1.0 / chromosome[METABOLIC_EFFICIENCY])
         energy -= log(1 + hunger, 10.0)
-
-        if (age > 20 && energy > 50 && Random.nextFloat() < (1.0 - chromosome[IMMUNITY_STRENGTH]) * (1.0 - (energy / MAX_ENERGY))) {
-            healthiness = max(healthiness - (0.1 * pow(1.0 - chromosome[IMMUNITY_STRENGTH], 2.0)), 0.01)
-        }
-
-        if (Random.nextFloat() < chromosome[REPLICATION_CHANCE] * (energy / MAX_ENERGY)) {
-            shouldReplicate = true
-        }
-
-        gatherFood()
-    }
-
-    private fun gatherFood() {
-        if (target == null || target!!.wasEaten) {
-            val closestFood: List<Pair<Food, Float>> = FoodManager.closestFoodTo(
-                transform.translation,
-                chromosome[SENSORY_RANGE].toFloat()
-            )
-
-            if (closestFood.isNotEmpty()) {
-                val i = Random.nextInt(closestFood.size)
-                target = closestFood[i].first
-                targetPosition = closestFood[i].first.transform.translation
-            } else {
-                target = null
-                targetPosition.set(
-                    (transform.translation.x + (if (Random.nextFloat() < 0.5) -1 else 1) * chromosome[SENSORY_RANGE]).toFloat(),
-                    0.0f,
-                    (transform.translation.y + (if (Random.nextFloat() < 0.5) -1 else 1) * chromosome[SENSORY_RANGE]).toFloat()
-                )
-            }
-        }
-    }
-
-    override fun update(delta: Double) {
-        super.update(delta)
-        age += delta
-
-        val step = Vector3f()
-        targetPosition.sub(transform.translation, step)
-
-        step.y = 0.0f
-        step.normalize()
-
-        if (step.length() > chromosome[SPEED] * delta) {
-            step.normalize((chromosome[SPEED] * delta).toFloat())
-        } else if (step.length() < 1.0f) {
-            step.zero()
-        }
-
-        transform.translate(step)
-        // TODO: Decrease energy based on size, mass and speed.
-        energy -= delta * 0.1 * chromosome[SPEED]
     }
 
     fun replicate(): Creature {
-        shouldReplicate = false
-        energy -= 20
-
         val chromosome = Chromosome(chromosome)
         chromosome.mutate()
 
-        return Creature(
+        val creature = Creature(
             chromosome,
             Transform(transform),
             mesh = createMesh(),
@@ -199,29 +159,132 @@ class Creature(
                 )
             )
         )
+
+        // Birthing costs energy for the parent(s)
+        energy -= 0.5 * MAX_ENERGY
+        // Newborns are born slightly weak
+        creature.energy = 0.5 * MAX_ENERGY
+
+        // Non-greedy parent will share stockpiled food with their children
+        if (heldFood != null && !isGreedy) {
+            giveFoodTo(creature)
+        }
+
+        return creature
+    }
+
+    private fun giveFoodTo(creature: Creature) {
+        creature.heldFood = heldFood
+        heldFood = null
     }
 
     override fun onCollision(other: GameObject) {
-        if (other is Food) {
-            // TODO: Allow creatures to stockpile food.
+        if (other is Food && !other.wasEaten && !other.wasPickedUp) {
+            // TODO: Allow creatures to stockpile more than one piece of food.
             //  From this you could give creatures altruistic traits to share surplus food with certain creatures
             //  (e.g. kin, species, particular traits). You could also give creatures short-term and long-term planning
             //  traits that change how the creature balances short vs. long term gains. For example, a short-sighted
             //  creature may just eat any food it picks up regardless of any long-term goals
             // TODO: Give a chance for nearby creatures to challenge this creature for the food.
-            // TODO: Stockpile food based on how hungry or how much energy it has? Add 'greedy' trait that will eat food
-            //  regardless and a 'thrifty' trait that stockpiles food when it doesn't immediately need to eat it?
-            eat(other)
+            if (energy < MAX_ENERGY || Random.nextFloat() < 1.0 - chromosome[THRIFTINESS]) {
+                eat(other)
+            } else {
+                heldFood = other
+                other.wasPickedUp = true
+            }
         }
     }
 
-    fun eat(food: Food) {
+    private fun eat(food: Food) {
+        val noms = food.consume()
         // Clip to [0, ∞) since you can't get 'unhungry', or maybe you can...
         // TODO: Allow creatures to overeat? This could increase the chance of them getting sick (and then perhaps puke
         //  and lose energy and increase thirstiness?).
-        hunger = max(0.0, hunger - food.consume())
+        hunger = max(0.0, hunger - noms)
         // TODO: Increase creature size when eating food at max energy and min hunger? Greedy creatures get fat???
-        energy = min(energy + food.consume() * chromosome[METABOLIC_EFFICIENCY], MAX_ENERGY)
+        energy = min(energy + noms * chromosome[METABOLIC_EFFICIENCY], 1.5 * MAX_ENERGY)
+    }
+
+    override fun update(delta: Double) {
+        super.update(delta)
+
+        // Stop creatures from moving to spot were food used to be and then all stacking up on each other
+        if (target != null && (target!!.wasPickedUp || target!!.wasEaten)) {
+            rest()
+        }
+
+        if (shouldRest) {
+            rest()
+        } else if (shouldLookForFood) {
+            lookForFood()
+
+            if (shouldScout) {
+                scout()
+            }
+        }
+
+        if (shouldMove) {
+            moveTowardsDestination(delta)
+        }
+    }
+
+    /** Do nothing. */
+    private fun rest() {
+        target = null
+        destination = null
+    }
+
+    /**
+     * Locate the nearest [Food] within the creature's [SENSORY_RANGE] and set the creature's [target] and
+     * [destination] if found.
+     */
+    private fun lookForFood() {
+        val closestFood: List<Pair<Food, Float>> = FoodManager.closestFoodTo(
+            transform.translation,
+            chromosome[SENSORY_RANGE].toFloat()
+        )
+
+        if (closestFood.isNotEmpty()) {
+            val i = Random.nextInt(closestFood.size)
+            target = closestFood[i].first
+            destination = closestFood[i].first.transform.translation
+        } else {
+            target = null
+        }
+    }
+
+    /**
+     * Move to a random point at the perimeter of the creature's [SENSORY_RANGE] in hope that food will come into
+     * range.
+     */
+    private fun scout() {
+        val x =
+            (transform.translation.x + (if (Random.nextFloat() < 0.5) -1 else 1) * chromosome[SENSORY_RANGE]).toFloat()
+        val z =
+            (transform.translation.y + (if (Random.nextFloat() < 0.5) -1 else 1) * chromosome[SENSORY_RANGE]).toFloat()
+
+        destination = Vector3f(x, 0.0f, z)
+        GameManager.worldBounds.clip(destination!!)
+    }
+
+    /** Move the creature towards its destination by a step scaled by [delta]. */
+    private fun moveTowardsDestination(delta: Double) {
+        val step = Vector3f()
+        destination!!.sub(transform.translation, step)
+
+        step.y = 0.0f
+
+        if (step.length() > chromosome[SPEED] * delta) {
+            step.normalize((chromosome[SPEED] * delta).toFloat())
+        }
+
+        transform.translate(step)
+        // TODO: Decrease energy based on size, mass and speed.
+        energy -= delta * step.length()
+
+        if (transform.translation.distance(destination!!) < 0.01f) {
+            rest()
+        }
     }
 
     override fun cleanup() {

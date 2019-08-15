@@ -12,7 +12,7 @@ open class GameObject(
 ) {
     val modelMatrix: Matrix4f get() = transform.transformMatrix
     var shouldRender = true
-    var shouldRemove = false
+    open var shouldRemove = false
 
     open fun render() {
         mesh.render(material)
