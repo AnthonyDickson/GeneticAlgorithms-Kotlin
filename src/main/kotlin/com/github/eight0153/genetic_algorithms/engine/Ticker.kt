@@ -12,17 +12,26 @@ class Ticker(
 ) {
     private var timeSinceLastTick = 0.0
     private val subscribers = ArrayList<TickerSubscriberI>()
+    private val newSubscribers = ArrayList<TickerSubscriberI>()
+    private val unsubscribers = ArrayList<TickerSubscriberI>()
 
     fun subscribe(subscriber: TickerSubscriberI) {
-        subscribers.add(subscriber)
+        newSubscribers.add(subscriber)
     }
 
     fun unsubscribe(subscriber: TickerSubscriberI) {
-        subscribers.remove(subscriber)
+        unsubscribers.add(subscriber)
     }
 
     fun update(delta: Double) {
         timeSinceLastTick += delta
+
+        // Update subscriber list here (rather than in subscribe() and unsubscribe()) to avoid concurrent modification
+        // errors.
+        subscribers.addAll(newSubscribers)
+        subscribers.removeAll(unsubscribers)
+        newSubscribers.clear()
+        unsubscribers.clear()
 
         if (timeSinceLastTick >= tickerInterval) {
             timeSinceLastTick = 0.0
