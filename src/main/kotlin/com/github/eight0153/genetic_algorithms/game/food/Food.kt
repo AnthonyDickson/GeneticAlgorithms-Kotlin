@@ -35,7 +35,7 @@ class Food(
         }
 
         fun create(fillingness: Double = 1.0, colour: Vector3f? = null): Food {
-            val transform = Transform(Vector3f(0.0f, 0.25f, 0.0f), 0.5f)
+            val transform = Transform(Vector3f(0.0f, -0.25f, 0.0f), 0.5f)
             return Food(
                 transform,
                 AABB(transform, Vector3f(transform.scale)),
