@@ -12,12 +12,14 @@ import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Compani
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.METABOLIC_EFFICIENCY
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.REPLICATION_CHANCE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SENSORY_RANGE
+import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SIZE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SPEED
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.THRIFTINESS
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.geneValueBounds
 import com.github.eight0153.genetic_algorithms.game.food.Food
 import com.github.eight0153.genetic_algorithms.game.food.FoodManager
 import org.joml.Vector3f
+import java.lang.Math.pow
 import kotlin.math.log
 import kotlin.math.max
 import kotlin.math.min
@@ -38,7 +40,7 @@ import kotlin.random.Random
 //  looking for a mate.
 class Creature(
     private val chromosome: Chromosome = Chromosome(),
-    transform: Transform = Transform(),
+    transform: Transform = Transform(scale = chromosome[SIZE].toFloat()),
     boundingBox: AABB = AABB(transform),
     mesh: Mesh = createMesh(),
     material: Material = createMaterial(
@@ -78,7 +80,7 @@ class Creature(
                 creature.material.specularColour.set(colour)
             }
 
-            creature.transform.translation.set(position.x, 0.0f, position.z)
+            creature.transform.translation.set(position.x, 0.5f * (creature.transform.scale - 1.0f), position.z)
 
             return creature
         }
@@ -264,6 +266,7 @@ class Creature(
             (transform.translation.y + (if (Random.nextFloat() < 0.5) -1 else 1) * chromosome[SENSORY_RANGE]).toFloat()
 
         destination = Vector3f(x, 0.0f, z)
+        // Fix this
         GameManager.worldBounds.clip(destination!!)
     }
 
@@ -280,7 +283,7 @@ class Creature(
 
         transform.translate(step)
         // TODO: Decrease energy based on size, mass and speed.
-        energy -= delta * step.length()
+        energy -= delta * pow(step.length().toDouble(), 2.0) * pow(chromosome[SIZE], 2.0)
 
         if (transform.translation.distance(destination!!) < 0.01f) {
             rest()

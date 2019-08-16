@@ -4,7 +4,6 @@ import com.github.eight0153.genetic_algorithms.engine.BoundsND
 import kotlin.random.Random
 
 class Chromosome {
-    // TODO: Add gene for size
     // TODO: Add gene for sensory range
     // TODO: Make separate genes for daytime sensory range and nighttime sensory range
     // TODO: Add diseases that affect creatures with certain genes. Would be interesting to see if natural selection takes care of things.
@@ -23,23 +22,25 @@ class Chromosome {
         const val MUTATION_CHANCE = 0x2
         /** How fast a creature can move. Gotta go fast. Zoom zoom! */
         const val SPEED = 0x3
+        /** How large a creature is. */
+        const val SIZE = 0x4
         /** The red component of a creature's colour. */
-        const val COLOUR_RED = 0x4
+        const val COLOUR_RED = 0x5
         /** The green component of a creature's colour. */
-        const val COLOUR_GREEN = 0x5
+        const val COLOUR_GREEN = 0x6
         /** The blue component of a creature's colour. */
-        const val COLOUR_BLUE = 0x6
+        const val COLOUR_BLUE = 0x7
         /** How efficient a creature is at digesting food. */
-        const val METABOLIC_EFFICIENCY = 0x7
+        const val METABOLIC_EFFICIENCY = 0x8
         /** The distance a creature can sense objects. */
-        const val SENSORY_RANGE = 0x8
+        const val SENSORY_RANGE = 0x9
         /** How greedy a creature is. */
-        const val GREEDINESS = 0x9
+        const val GREEDINESS = 0xa
         /** How likely a creature is likely to prioritise long-term planning over short-term planning. */
-        const val THRIFTINESS = 0xa
+        const val THRIFTINESS = 0xb
 
         // TODO: Find a way to automatically calculate how many genes there are.
-        const val NUM_GENES = 11
+        const val NUM_GENES = 12
 
         val geneValueBounds = BoundsND(NUM_GENES)
 
@@ -53,8 +54,11 @@ class Chromosome {
             geneValueBounds.min[MUTATION_CHANCE] = 0.0
             geneValueBounds.max[MUTATION_CHANCE] = 1.0
 
-            geneValueBounds.min[SPEED] = 1.0
-            geneValueBounds.max[SPEED] = 4.0
+            geneValueBounds.min[SPEED] = 0.5
+            geneValueBounds.max[SPEED] = 8.0
+
+            geneValueBounds.min[SIZE] = 0.1
+            geneValueBounds.max[SIZE] = 4.0
 
             geneValueBounds.min[COLOUR_RED] = 0.0
             geneValueBounds.max[COLOUR_RED] = 1.0
@@ -89,6 +93,8 @@ class Chromosome {
 
     // TODO: Add crossover operator
 
+    // TODO: Make mutations around the current value, rather than outright replacing it. This avoids situations where a
+    //  small creature may give birth to a creature many times its size.
     fun mutate() {
         for (i in 0 until NUM_GENES) {
             if (Random.nextDouble() < genes[MUTATION_CHANCE]) {
