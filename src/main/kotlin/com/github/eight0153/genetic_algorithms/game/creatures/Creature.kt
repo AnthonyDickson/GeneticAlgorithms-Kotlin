@@ -64,21 +64,14 @@ class Creature(
         }
 
         /**
-         * Create a [Creature] at the given [position]  and with the given [colour].
+         * Create a [Creature] at the given [position]  and with the given [chromosome].
          * The y component of [position] is ignored.
          */
         fun create(
             position: Vector3f = Vector3f(0.0f, 0.0f, 0.0f),
-            colour: Vector3f? = null,
             chromosome: Chromosome? = null
         ): Creature {
             val creature = Creature(chromosome ?: Chromosome())
-
-            if (colour != null) {
-                creature.material.ambientColour.set(colour)
-                creature.material.diffuseColour.set(colour)
-                creature.material.specularColour.set(colour)
-            }
 
             creature.transform.translation.set(position.x, 0.5f * (creature.transform.scale - 1.0f), position.z)
 
@@ -151,18 +144,7 @@ class Creature(
         val chromosome = Chromosome(chromosome)
         chromosome.mutate()
 
-        val creature = Creature(
-            chromosome,
-            Transform(transform),
-            mesh = createMesh(),
-            material = createMaterial(
-                colour = Vector3f(
-                    chromosome[COLOUR_RED].toFloat(),
-                    chromosome[COLOUR_GREEN].toFloat(),
-                    chromosome[COLOUR_BLUE].toFloat()
-                )
-            )
-        )
+        val creature = create(transform.translation, chromosome)
 
         // Birthing costs energy for the parent(s)
         energy -= 0.5 * MAX_ENERGY
@@ -268,7 +250,6 @@ class Creature(
             (transform.translation.z + (if (Random.nextFloat() < 0.5f) -1 else 1) * (chromosome[SENSORY_RANGE]).toFloat() - 1.0f)
 
         destination = Vector3f(x, transform.translation.y, z)
-        // Fix this
         World.bounds.clip(destination!!, boundingBox)
     }
 
