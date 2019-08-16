@@ -78,15 +78,15 @@ class Creature(
             return creature
         }
 
-        /** What is considered 100% energy. Note: A creatures energy may actually exceed this value. */
-        private const val MAX_ENERGY = 100.0
+        private const val STARTING_ENERGY = 100.0
     }
 
     private var age = 0.0
     private var hunger = 0.0
-    // TODO: Implement a thirstiness mechanic
+    // TODO: Implement a thirstiness mechanic?
 //    private var thirstiness = 0.0
-    private var energy = MAX_ENERGY
+    private var energy = STARTING_ENERGY
+    private val maxEnergy = STARTING_ENERGY + chromosome[SIZE] * STARTING_ENERGY
     private var target: Food? = null
 
     private var destination: Vector3f? = null
@@ -99,12 +99,12 @@ class Creature(
 
     /** Creatures will replicate subject to stockpiled food, energy levels and random chance. */
     val shouldReplicate: Boolean
-        get() = energy > MAX_ENERGY && Random.nextFloat() < chromosome[REPLICATION_CHANCE]
+        get() = energy > STARTING_ENERGY && Random.nextFloat() < chromosome[REPLICATION_CHANCE]
 
     // TODO: Make thrifty creatures stockpile more food before resting
     /** Creatures will rest if they have saved up enough energy, have some food in reserve and they are not greedy. */
     private val shouldRest: Boolean
-        get() = energy > MAX_ENERGY && heldFood != null && !isGreedy
+        get() = energy > STARTING_ENERGY && heldFood != null && !isGreedy
 
     /** Creatures will look for food if it does not have a valid target or destination. */
     private val shouldLookForFood: Boolean
@@ -120,75 +120,6 @@ class Creature(
 
     init {
         Engine.ticker.subscribe(this)
-    }
-
-    override fun onTick() {
-        age += 1
-
-        if (energy <= 0 || Random.nextFloat() < chromosome[DEATH_CHANCE]) {
-            isDead = true
-            return
-        }
-
-        if (heldFood != null && energy < 0.5 * MAX_ENERGY) {
-            eat(heldFood!!)
-            heldFood!!.cleanup()
-            heldFood = null
-        }
-
-        hunger += 1.0 * chromosome[METABOLIC_EFFICIENCY]
-        energy -= log(1 + hunger, 10.0)
-    }
-
-    fun replicate(): Creature {
-        val chromosome = Chromosome(chromosome)
-        chromosome.mutate()
-
-        val creature = create(transform.translation, chromosome)
-
-        // Birthing costs energy for the parent(s)
-        energy -= 0.5 * MAX_ENERGY
-        // Newborns are born slightly weak
-        creature.energy = 0.5 * MAX_ENERGY
-
-        // Non-greedy parent will share stockpiled food with their children
-        if (heldFood != null && !isGreedy) {
-            giveFoodTo(creature)
-        }
-
-        return creature
-    }
-
-    private fun giveFoodTo(creature: Creature) {
-        creature.heldFood = heldFood
-        heldFood = null
-    }
-
-    override fun onCollision(other: GameObject) {
-        if (other is Food && !other.wasEaten && !other.wasPickedUp) {
-            // TODO: Allow creatures to stockpile more than one piece of food.
-            //  From this you could give creatures altruistic traits to share surplus food with certain creatures
-            //  (e.g. kin, species, particular traits). You could also give creatures short-term and long-term planning
-            //  traits that change how the creature balances short vs. long term gains. For example, a short-sighted
-            //  creature may just eat any food it picks up regardless of any long-term goals
-            // TODO: Give a chance for nearby creatures to challenge this creature for the food.
-            if (energy < MAX_ENERGY || Random.nextFloat() < 1.0 - chromosome[THRIFTINESS]) {
-                eat(other)
-            } else {
-                heldFood = other
-                other.wasPickedUp = true
-            }
-        }
-    }
-
-    private fun eat(food: Food) {
-        val noms = food.consume()
-        // Clip to [0, ∞) since you can't get 'unhungry', or maybe you can...
-        // TODO: Allow creatures to overeat? This could increase the chance of them getting sick (and then perhaps puke
-        //  and lose energy and increase thirstiness?).
-        hunger = max(0.0, hunger - noms)
-        // TODO: Increase creature size when eating food at max energy and min hunger? Greedy creatures get fat???
-        energy = min(energy + noms * chromosome[METABOLIC_EFFICIENCY], MAX_ENERGY + chromosome[SIZE] * MAX_ENERGY)
     }
 
     override fun update(delta: Double) {
@@ -271,6 +202,75 @@ class Creature(
         if (transform.translation.distance(destination!!) < 0.01f) {
             rest()
         }
+    }
+
+    override fun onTick() {
+        age += 1
+
+        if (energy <= 0 || Random.nextFloat() < chromosome[DEATH_CHANCE]) {
+            isDead = true
+            return
+        }
+
+        if (heldFood != null && energy < 0.5 * STARTING_ENERGY) {
+            eat(heldFood!!)
+            heldFood!!.cleanup()
+            heldFood = null
+        }
+
+        hunger += 1.0 * chromosome[METABOLIC_EFFICIENCY]
+        energy -= log(1 + hunger, 10.0)
+    }
+
+    fun replicate(): Creature {
+        val chromosome = Chromosome(chromosome)
+        chromosome.mutate()
+
+        val creature = create(transform.translation, chromosome)
+
+        // Birthing costs energy for the parent(s)
+        energy -= 0.5 * STARTING_ENERGY
+        // Newborns are born slightly weak
+        creature.energy = 0.5 * STARTING_ENERGY
+
+        // Non-greedy parent will share stockpiled food with their children
+        if (heldFood != null && !isGreedy) {
+            giveFoodTo(creature)
+        }
+
+        return creature
+    }
+
+    private fun giveFoodTo(creature: Creature) {
+        creature.heldFood = heldFood
+        heldFood = null
+    }
+
+    override fun onCollision(other: GameObject) {
+        if (other is Food && !other.wasEaten && !other.wasPickedUp) {
+            // TODO: Allow creatures to stockpile more than one piece of food.
+            //  From this you could give creatures altruistic traits to share surplus food with certain creatures
+            //  (e.g. kin, species, particular traits). You could also give creatures short-term and long-term planning
+            //  traits that change how the creature balances short vs. long term gains. For example, a short-sighted
+            //  creature may just eat any food it picks up regardless of any long-term goals
+            // TODO: Give a chance for nearby creatures to challenge this creature for the food.
+            if (energy < STARTING_ENERGY || Random.nextFloat() < 1.0 - chromosome[THRIFTINESS]) {
+                eat(other)
+            } else {
+                heldFood = other
+                other.wasPickedUp = true
+            }
+        }
+    }
+
+    private fun eat(food: Food) {
+        val noms = food.consume()
+        // Clip to [0, ∞) since you can't get 'unhungry', or maybe you can...
+        // TODO: Allow creatures to overeat? This could increase the chance of them getting sick (and then perhaps puke
+        //  and lose energy and increase thirstiness?).
+        hunger = max(0.0, hunger - noms)
+        // TODO: Increase creature size when eating food at max energy and min hunger? Greedy creatures get fat???
+        energy = min(energy + noms * chromosome[METABOLIC_EFFICIENCY], maxEnergy)
     }
 
     override fun cleanup() {
