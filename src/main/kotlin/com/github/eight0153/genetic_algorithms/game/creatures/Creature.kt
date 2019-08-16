@@ -3,7 +3,7 @@ package com.github.eight0153.genetic_algorithms.game.creatures
 import com.github.eight0153.genetic_algorithms.engine.*
 import com.github.eight0153.genetic_algorithms.engine.graphics.Material
 import com.github.eight0153.genetic_algorithms.engine.graphics.Mesh
-import com.github.eight0153.genetic_algorithms.game.GameManager
+import com.github.eight0153.genetic_algorithms.game.World
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.COLOUR_BLUE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.COLOUR_GREEN
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.COLOUR_RED
@@ -89,27 +89,20 @@ class Creature(
         private const val MAX_ENERGY = 100.0
     }
 
-    /** A creature should scout if there is no food nearby (i.e. it cannot find food nearby). */
-    private val shouldScout: Boolean
-        get() = target == null && destination == null
-
-
     private var age = 0.0
     private var hunger = 0.0
     // TODO: Implement a thirstiness mechanic
 //    private var thirstiness = 0.0
     private var energy = MAX_ENERGY
-
     private var target: Food? = null
+
     private var destination: Vector3f? = null
     // TODO: Allow a creature to stockpile more than one food
     private var heldFood: Food? = null
 
-    val isDead: Boolean
-        get() = energy <= 0 || Random.nextFloat() < chromosome[DEATH_CHANCE]
+    var isDead: Boolean = false
 
-    private val isGreedy: Boolean
-        get() = chromosome[GREEDINESS] > 0.5 * geneValueBounds.max[GREEDINESS]
+    private val isGreedy: Boolean = chromosome[GREEDINESS] > 0.5 * geneValueBounds.max[GREEDINESS]
 
     /** Creatures will replicate subject to stockpiled food, energy levels and random chance. */
     val shouldReplicate: Boolean
@@ -124,6 +117,10 @@ class Creature(
     private val shouldLookForFood: Boolean
         get() = (target == null || target!!.wasEaten || target!!.wasPickedUp)
 
+    /** A creature should scout if there is no food nearby (i.e. it cannot find food nearby). */
+    private val shouldScout: Boolean
+        get() = target == null && destination == null
+
     /** Creatures will move if they have a valid destination. */
     private val shouldMove: Boolean
         get() = destination != null
@@ -135,13 +132,18 @@ class Creature(
     override fun onTick() {
         age += 1
 
+        if (energy <= 0 || Random.nextFloat() < chromosome[DEATH_CHANCE]) {
+            isDead = true
+            return
+        }
+
         if (heldFood != null && energy < 0.5 * MAX_ENERGY) {
             eat(heldFood!!)
             heldFood!!.cleanup()
             heldFood = null
         }
 
-        hunger += 1.0 * (1.0 / chromosome[METABOLIC_EFFICIENCY])
+        hunger += 1.0 * chromosome[METABOLIC_EFFICIENCY]
         energy -= log(1 + hunger, 10.0)
     }
 
@@ -204,7 +206,7 @@ class Creature(
         //  and lose energy and increase thirstiness?).
         hunger = max(0.0, hunger - noms)
         // TODO: Increase creature size when eating food at max energy and min hunger? Greedy creatures get fat???
-        energy = min(energy + noms * chromosome[METABOLIC_EFFICIENCY], 1.5 * MAX_ENERGY)
+        energy = min(energy + noms * chromosome[METABOLIC_EFFICIENCY], MAX_ENERGY + chromosome[SIZE] * MAX_ENERGY)
     }
 
     override fun update(delta: Double) {
@@ -261,13 +263,13 @@ class Creature(
      */
     private fun scout() {
         val x =
-            (transform.translation.x + (if (Random.nextFloat() < 0.5) -1 else 1) * chromosome[SENSORY_RANGE]).toFloat()
+            (transform.translation.x + (if (Random.nextFloat() < 0.5f) -1 else 1) * (chromosome[SENSORY_RANGE]).toFloat() - 1.0f)
         val z =
-            (transform.translation.y + (if (Random.nextFloat() < 0.5) -1 else 1) * chromosome[SENSORY_RANGE]).toFloat()
+            (transform.translation.z + (if (Random.nextFloat() < 0.5f) -1 else 1) * (chromosome[SENSORY_RANGE]).toFloat() - 1.0f)
 
-        destination = Vector3f(x, 0.0f, z)
+        destination = Vector3f(x, transform.translation.y, z)
         // Fix this
-        GameManager.worldBounds.clip(destination!!)
+        World.bounds.clip(destination!!, boundingBox)
     }
 
     /** Move the creature towards its destination by a step scaled by [delta]. */

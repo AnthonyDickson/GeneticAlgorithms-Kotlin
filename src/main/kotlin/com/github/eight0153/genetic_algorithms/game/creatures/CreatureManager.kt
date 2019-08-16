@@ -1,11 +1,15 @@
 package com.github.eight0153.genetic_algorithms.game.creatures
 
-import com.github.eight0153.genetic_algorithms.engine.*
+import com.github.eight0153.genetic_algorithms.engine.Engine
+import com.github.eight0153.genetic_algorithms.engine.GameLogicManagerI
+import com.github.eight0153.genetic_algorithms.engine.Renderer
+import com.github.eight0153.genetic_algorithms.engine.TickerSubscriberI
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
+import com.github.eight0153.genetic_algorithms.game.World
 import org.lwjgl.glfw.GLFW
 
-class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPopulation: Int = 100) :
+class CreatureManager(initialPopulation: Int = 100) :
     GameLogicManagerI, TickerSubscriberI {
     override val controls: Map<String, String>
         get() = mapOf(
@@ -20,7 +24,7 @@ class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPop
     private val populationStatisticsLogger = PopulationStatisticsLogger()
 
     init {
-        repeat(initialPopulation) { creatures.add(Creature.create(worldBounds.sample())) }
+        repeat(initialPopulation) { creatures.add(Creature.create(World.bounds.sample())) }
         Engine.ticker.subscribe(this)
     }
 
@@ -57,7 +61,7 @@ class CreatureManager(private val worldBounds: Bounds3D = Bounds3D(), initialPop
     override fun update(delta: Double) {
         creatures.forEach {
             it.update(delta)
-            worldBounds.clip(it.transform.translation)
+            World.bounds.clip(it.transform.translation)
         }
     }
 

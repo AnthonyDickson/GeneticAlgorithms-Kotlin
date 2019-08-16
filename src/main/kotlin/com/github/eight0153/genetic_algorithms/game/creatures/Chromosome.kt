@@ -57,8 +57,8 @@ class Chromosome {
             geneValueBounds.min[SPEED] = 0.5
             geneValueBounds.max[SPEED] = 8.0
 
-            geneValueBounds.min[SIZE] = 0.1
-            geneValueBounds.max[SIZE] = 4.0
+            geneValueBounds.min[SIZE] = 0.5
+            geneValueBounds.max[SIZE] = 2.0
 
             geneValueBounds.min[COLOUR_RED] = 0.0
             geneValueBounds.max[COLOUR_RED] = 1.0

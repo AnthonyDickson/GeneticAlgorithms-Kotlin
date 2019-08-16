@@ -6,7 +6,7 @@ import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Camera(windowSize: Vector2f, private val bounds: Bounds3D) {
+class Camera(windowSize: Vector2f) {
     private val fieldOfView = Math.toRadians(60.0).toFloat()
     private val zNear = 0.01f
     private val zFar = 1000f
@@ -39,8 +39,6 @@ class Camera(windowSize: Vector2f, private val bounds: Bounds3D) {
         }
 
         translation.y += y
-
-        bounds.clip(translation)
     }
 
     fun rotate(x: Float = 0.0f, y: Float = 0.0f, z: Float = 0.0f) {

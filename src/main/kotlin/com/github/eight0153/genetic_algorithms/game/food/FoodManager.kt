@@ -1,8 +1,12 @@
 package com.github.eight0153.genetic_algorithms.game.food
 
-import com.github.eight0153.genetic_algorithms.engine.*
+import com.github.eight0153.genetic_algorithms.engine.Engine
+import com.github.eight0153.genetic_algorithms.engine.GameLogicManagerI
+import com.github.eight0153.genetic_algorithms.engine.Renderer
+import com.github.eight0153.genetic_algorithms.engine.TickerSubscriberI
 import com.github.eight0153.genetic_algorithms.engine.input.KeyboardInputHandler
 import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
+import com.github.eight0153.genetic_algorithms.game.World
 import org.joml.Vector3f
 
 object FoodManager : GameLogicManagerI, TickerSubscriberI {
@@ -11,16 +15,13 @@ object FoodManager : GameLogicManagerI, TickerSubscriberI {
     private var foodFillingness: Double = 1.0
 
     lateinit var food: ArrayList<Food>
-    private lateinit var worldBounds: Bounds3D
 
     fun init(
-        worldBounds: Bounds3D,
         /** The maximum number of pieces of food to have spawned at once. */
         maxFood: Int = 10,
         spawnRate: Int = 1,
         foodFillingness: Double = 1.0
     ) {
-        this.worldBounds = worldBounds
         this.maxFood = maxFood
         this.spawnRate = spawnRate
         this.foodFillingness = foodFillingness
@@ -32,7 +33,7 @@ object FoodManager : GameLogicManagerI, TickerSubscriberI {
     }
 
     private fun spawnFood() {
-        val position = worldBounds.sample()
+        val position = World.bounds.sample()
         val food = Food.create(fillingness = foodFillingness)
         food.transform.translate(x = position.x, z = position.z)
 

@@ -43,6 +43,13 @@ class Bounds3D(
         return vector
     }
 
+    fun clip(vector: Vector3f, boundingBox: AABB): Vector3f {
+        vector.max(min.add(boundingBox.size, Vector3f()))
+        vector.min(max.sub(boundingBox.size, Vector3f()))
+
+        return vector
+    }
+
     /** Generate a random point that lies within the [Bounds3D]. */
     fun sample(): Vector3f {
         return Vector3f(

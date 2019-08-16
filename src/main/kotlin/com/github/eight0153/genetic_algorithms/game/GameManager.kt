@@ -13,11 +13,6 @@ import org.lwjgl.glfw.GLFW
 import kotlin.math.cos
 
 class GameManager(private val worldSize: Vector3f) : GameManagerI {
-    companion object {
-        // TODO: Refactor this into a shared 'world' object that contains info on the game world
-        var worldBounds: Bounds3D = Bounds3D()
-    }
-
     private val frameRateLogger = FrameRateLogger()
 
     private var gameObjects = ArrayList<GameObject>()
@@ -27,7 +22,6 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
 
     private lateinit var camera: Camera
     private lateinit var renderer: Renderer
-    private lateinit var worldBounds: Bounds3D
 
     private val cameraMoveSpeed = 20f
     private val cameraRotateSpeed = 20f
@@ -44,14 +38,14 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
 
         // Minus one from max bounds to prevent off-by-one error in bounds clipping
         val maxBounds = Vector3f(
-            0.5f * worldSize.x - 1,
-            worldSize.y - 1,
-            0.5f * worldSize.z - 1
+            0.5f * worldSize.x,
+            worldSize.y,
+            0.5f * worldSize.z
         )
 
-        worldBounds = Bounds3D(minBounds, maxBounds)
+        World.bounds = Bounds3D(minBounds, maxBounds)
 
-        camera = Camera(windowSize, worldBounds)
+        camera = Camera(windowSize)
         resetCamera()
 
         //==============//
@@ -165,10 +159,10 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         //============//
         // Game Logic //
         //============//
-        FoodManager.init(worldBounds, 128, 4, 100.0)
+        FoodManager.init(256, 8, 100.0)
         gameLogicManagers.add(FoodManager)
 
-        creatureManager = CreatureManager(worldBounds, 64)
+        creatureManager = CreatureManager(128)
         gameLogicManagers.add(creatureManager)
 
         printInfo(windowName)
@@ -244,6 +238,8 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         handleCollisions()
 
         gameLogicManagers.forEach { it.postUpdate() }
+
+        World.bounds.clip(camera.translation)
     }
 
     private fun handleCollisions() {
