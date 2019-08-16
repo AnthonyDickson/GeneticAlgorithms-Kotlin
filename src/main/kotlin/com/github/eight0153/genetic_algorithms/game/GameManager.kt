@@ -38,9 +38,9 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
 
         // Minus one from max bounds to prevent off-by-one error in bounds clipping
         val maxBounds = Vector3f(
-            0.5f * worldSize.x,
-            worldSize.y,
-            0.5f * worldSize.z
+            0.5f * worldSize.x - 1,
+            worldSize.y - 1,
+            0.5f * worldSize.z - 1
         )
 
         World.bounds = Bounds3D(minBounds, maxBounds)
