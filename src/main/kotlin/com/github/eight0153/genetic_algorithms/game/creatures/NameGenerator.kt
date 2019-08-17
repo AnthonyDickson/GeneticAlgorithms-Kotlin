@@ -65,12 +65,7 @@ object NameGenerator {
         var name: String
 
         do {
-            val startingLetter = adjectives.keys.random()
-
-            val adjective = adjectives[startingLetter]!!.random()
-            val noun = nouns[startingLetter]!!.random()
-
-            name = "$adjective $noun"
+            name = random()
         } while (name in previousUniqueNames)
 
         previousUniqueNames.add(name)
