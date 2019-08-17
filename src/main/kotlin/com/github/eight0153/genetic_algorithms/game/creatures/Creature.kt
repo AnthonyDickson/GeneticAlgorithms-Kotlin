@@ -38,8 +38,10 @@ import kotlin.random.Random
 //  boost from food but hunger quicker.
 // TODO: Make creatures mate with each other. Once a creature has built up a stockpile of food it could then start
 //  looking for a mate.
+// TODO: Add names for creatures (include regnal numbers for same name in same species)
+// TODO: Make ID for creatures to be species + name + regnal number
 class Creature(
-    private val chromosome: Chromosome = Chromosome(),
+    val chromosome: Chromosome = Chromosome(),
     transform: Transform = Transform(scale = chromosome[SIZE].toFloat()),
     boundingBox: AABB = AABB(transform),
     mesh: Mesh = createMesh(),

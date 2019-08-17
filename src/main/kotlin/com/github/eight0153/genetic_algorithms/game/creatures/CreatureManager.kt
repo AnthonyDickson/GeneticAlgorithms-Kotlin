@@ -11,14 +11,16 @@ import org.lwjgl.glfw.GLFW
 
 class CreatureManager(initialPopulation: Int = 100) :
     GameLogicManagerI, TickerSubscriberI {
-    override val controls: Map<String, String>
-        get() = mapOf(
-            Pair("F3", "Toggle population statistics")
-        )
 
     companion object {
         const val MAX_CREATURES = 5192
     }
+
+    override val controls: Map<String, String>
+        get() = mapOf(
+            Pair("F3", "Toggle population statistics"),
+            Pair("F4", "Print census")
+        )
 
     val creatures = ArrayList<Creature>()
     private val populationStatisticsLogger = PopulationStatisticsLogger()
@@ -31,6 +33,7 @@ class CreatureManager(initialPopulation: Int = 100) :
     override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
         when {
             keyboard.wasPressed(GLFW.GLFW_KEY_F3) -> populationStatisticsLogger.toggle()
+            keyboard.wasPressed(GLFW.GLFW_KEY_F4) -> Census(creatures).printSummary()
         }
 
         return true

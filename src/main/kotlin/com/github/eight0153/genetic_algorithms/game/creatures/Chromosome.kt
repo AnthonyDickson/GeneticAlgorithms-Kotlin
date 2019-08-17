@@ -9,6 +9,7 @@ class Chromosome {
     // TODO: Add diseases that affect creatures with certain genes. Would be interesting to see if natural selection takes care of things.
     // TODO: Add gene that controls how strong a creature's immune system is (i.e. lowers chance of getting sick
     //  or healthiness decreasing)?
+    // TODO: Add speciation (each 'species' of chromosomes gets an unique name and chromosomes are assigned a species on creation).
     companion object {
         // Define mappings here
         /** How likely a creature is to replicate. */
