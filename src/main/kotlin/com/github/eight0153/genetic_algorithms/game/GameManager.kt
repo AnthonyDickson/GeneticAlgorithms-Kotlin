@@ -279,8 +279,7 @@ class GameManager(private val worldSize: Vector3f) : GameManagerI {
         val infoMessages = arrayOf(
             "There are things that move around on the screen.",
             "Sometimes they die, sometimes they reproduce.",
-            "You can fly the camera around and pretend you're superman.",
-            "Although, it is still kinda dark."
+            "You can fly the camera around and pretend you're superman."
         )
 
         for (message in infoMessages) {

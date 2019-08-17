@@ -16,16 +16,29 @@ import java.lang.Math.pow
 import kotlin.math.sqrt
 
 // TODO: Export census data to a server and view via web page (give option to view absolute numbers and stacked percentages)
-class Census(val population: List<Creature>) {
+class Census(
+    val population: List<Creature>,
+    val species: List<Species>
+) {
     companion object {
         var censusNumber = 0
+        const val FORMAT_STRING = "%-24s: %05.2f - %05.2f - %05.2f - %05.2f - %05.2f"
     }
 
     init {
         censusNumber++
     }
 
-    private val metrics = mapOf(
+    private val speciesMetrics = mapOf<String, (Species) -> Double>(
+        Pair("Population", { species -> species.numMembers.toDouble() }),
+        Pair("Historic Members", { species -> species.totalMembers.toDouble() })
+    )
+
+    private val creatureMetrics = mapOf<String, (Creature) -> Double>(
+        Pair("Age", { creature -> creature.age })
+    )
+
+    private val geneMetrics = mapOf(
         Pair("Fertility Rate", REPLICATION_CHANCE),
         Pair("Mortality Risk", DEATH_CHANCE),
         Pair("Mutation Chance", MUTATION_CHANCE),
@@ -40,29 +53,69 @@ class Census(val population: List<Creature>) {
         Pair("Thriftiness", THRIFTINESS)
     )
 
-    fun printSummary() {
-        val formatString = "%-24s: %05.2f - %05.2f - %05.2f - %05.2f - %05.2f"
 
+    fun printSummary() {
         println("Census #$censusNumber")
+
+        var values = Array(population.size) { 0.0 }
+
         println("Population: ${population.size}")
         println(" ".repeat(26) + "min   - max   - median - mean  - std.")
 
-        val values = Array(population.size) { 0.0 }
-
-        for ((metric, gene) in metrics) {
-            population.forEachIndexed { index, creature -> values[index] = creature.chromosome[gene] }
-            val summary = getSummaryOf(values)
-            println(
-                formatString.format(
-                    metric,
-                    summary.min,
-                    summary.max,
-                    summary.median,
-                    summary.mean,
-                    summary.standardDeviation
-                )
-            )
+        for ((metric, selector) in creatureMetrics) {
+            population.forEachIndexed { index, creature -> values[index] = selector(creature) }
+            printSummary(metric, values)
         }
+
+        for ((metric, gene) in geneMetrics) {
+            population.forEachIndexed { index, creature -> values[index] = creature.chromosome[gene] }
+            printSummary(metric, values)
+        }
+
+        println("\nSpecies: ${species.size}")
+
+        if (species.isNotEmpty()) {
+            println(" ".repeat(26) + "min   - max   - median - mean  - std.")
+
+            values = Array(species.size) { 0.0 }
+
+            for ((metric, selector) in speciesMetrics) {
+                species.forEachIndexed { index, species -> values[index] = selector(species) }
+                printSummary(metric, values)
+            }
+
+            val largestSpecies = species.maxBy { it.numMembers }!!
+
+            println("\nLargest Species: ${largestSpecies.name} - ${largestSpecies.numMembers} members")
+            println(" ".repeat(26) + "min   - max   - median - mean  - std.")
+
+            values = Array(largestSpecies.numMembers) { 0.0 }
+
+            for ((metric, selector) in creatureMetrics) {
+                largestSpecies.members.forEachIndexed { index, creature -> values[index] = selector(creature) }
+                printSummary(metric, values)
+            }
+
+            for ((metric, gene) in geneMetrics) {
+                largestSpecies.members.forEachIndexed { index, creature -> values[index] = creature.chromosome[gene] }
+                printSummary(metric, values)
+            }
+        }
+    }
+
+    private fun printSummary(metric: String, values: Array<Double>) {
+        val summary = getSummaryOf(values)
+
+        println(
+            FORMAT_STRING.format(
+                metric,
+                summary.min,
+                summary.max,
+                summary.median,
+                summary.mean,
+                summary.standardDeviation
+            )
+        )
     }
 
     private fun getSummaryOf(values: Array<Double>): Summary {
@@ -70,11 +123,11 @@ class Census(val population: List<Creature>) {
         val max = values.max()!!
         val mean = values.average()
         val sumSquareDifference = values.reduce { acc, x -> acc + pow(x - mean, 2.0) }
-        val variance = sumSquareDifference / population.size
+        val variance = sumSquareDifference / values.size
         val standardDeviation = sqrt(variance)
         val sortedValues = values.sorted()
         val median = if (values.size % 2 == 0) {
-            0.5 * (sortedValues[sortedValues.size / 2] + sortedValues[sortedValues.size / 2 + 1])
+            0.5 * (sortedValues[sortedValues.size / 2 - 1] + sortedValues[sortedValues.size / 2])
         } else {
             sortedValues[sortedValues.size / 2]
         }

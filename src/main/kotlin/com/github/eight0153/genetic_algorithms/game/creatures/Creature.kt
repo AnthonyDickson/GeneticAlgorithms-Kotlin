@@ -83,7 +83,7 @@ class Creature(
         private const val STARTING_ENERGY = 100.0
     }
 
-    private var age = 0.0
+    var age = 0.0
     private var hunger = 0.0
     // TODO: Implement a thirstiness mechanic?
 //    private var thirstiness = 0.0
@@ -277,6 +277,11 @@ class Creature(
 
     override fun cleanup() {
         Engine.ticker.unsubscribe(this)
+    }
+
+    /** Calculate a measure of similarity between this [Creature] and [other] that gives a value in the range `[-∞, 1]`. */
+    fun similarity(other: Creature): Double {
+        return chromosome.similarity(other.chromosome)
     }
 
 }

@@ -23,17 +23,38 @@ class CreatureManager(initialPopulation: Int = 100) :
         )
 
     val creatures = ArrayList<Creature>()
+    val species = ArrayList<Species>()
     private val populationStatisticsLogger = PopulationStatisticsLogger()
 
     init {
-        repeat(initialPopulation) { creatures.add(Creature.create(World.bounds.sample())) }
+        repeat(initialPopulation) {
+            creatures.add(Creature.create(World.bounds.sample()))
+            assignSpecies(creatures.last())
+        }
+
         Engine.ticker.subscribe(this)
+    }
+
+    private fun assignSpecies(creature: Creature) {
+        var foundSpecies = false
+
+        for (species in species) {
+            foundSpecies = species.add(creature)
+
+            if (foundSpecies) {
+                break
+            }
+        }
+
+        if (!foundSpecies) {
+            species.add(Species(NameGenerator.uniqueRandom(), creature))
+        }
     }
 
     override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
         when {
             keyboard.wasPressed(GLFW.GLFW_KEY_F3) -> populationStatisticsLogger.toggle()
-            keyboard.wasPressed(GLFW.GLFW_KEY_F4) -> Census(creatures).printSummary()
+            keyboard.wasPressed(GLFW.GLFW_KEY_F4) -> Census(creatures, species).printSummary()
         }
 
         return true
@@ -49,15 +70,25 @@ class CreatureManager(initialPopulation: Int = 100) :
             val creature = creatureIterator.next()
 
             if (creature.isDead) {
-                numDeaths++
+                for (species in species) {
+                    if (species.remove(creature)) {
+                        break
+                    }
+                }
+
                 creature.cleanup()
                 creatureIterator.remove()
+                numDeaths++
             } else if (creature.shouldReplicate && creatures.size + 1 <= MAX_CREATURES) {
+                val offspring = creature.replicate()
+
+                creatureIterator.add(offspring)
+                assignSpecies(offspring)
                 numBirths++
-                creatureIterator.add(creature.replicate())
             }
         }
 
+        species.removeAll { it.isExtinct }
         populationStatisticsLogger.update(creatures.size, numBirths, numDeaths)
     }
 

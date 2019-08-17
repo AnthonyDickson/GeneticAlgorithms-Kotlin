@@ -1,6 +1,8 @@
 package com.github.eight0153.genetic_algorithms.game.creatures
 
 import com.github.eight0153.genetic_algorithms.engine.BoundsND
+import kotlin.math.pow
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 class Chromosome {
@@ -9,7 +11,6 @@ class Chromosome {
     // TODO: Add diseases that affect creatures with certain genes. Would be interesting to see if natural selection takes care of things.
     // TODO: Add gene that controls how strong a creature's immune system is (i.e. lowers chance of getting sick
     //  or healthiness decreasing)?
-    // TODO: Add speciation (each 'species' of chromosomes gets an unique name and chromosomes are assigned a species on creation).
     companion object {
         // Define mappings here
         /** How likely a creature is to replicate. */
@@ -106,6 +107,12 @@ class Chromosome {
 
     operator fun get(i: Int): Double {
         return genes[i]
+    }
+
+    /** Calculate a measure of similarity between this [Chromosome] and [other] that gives a value in the range `[-∞, 1]`. */
+    fun similarity(other: Chromosome): Double {
+        // 1.0 minus the Euclidean distance between the two chromosomes.
+        return 1.0 - sqrt((genes zip other.genes).map { (it.first - it.second).pow(2) }.sum())
     }
 
 }

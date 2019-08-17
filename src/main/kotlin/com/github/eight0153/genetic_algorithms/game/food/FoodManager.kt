@@ -9,6 +9,7 @@ import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import com.github.eight0153.genetic_algorithms.game.World
 import org.joml.Vector3f
 
+// TODO: Refactor managers such that using singletons is no longer needed
 object FoodManager : GameLogicManagerI, TickerSubscriberI {
     private var maxFood: Int = 0
     private var spawnRate: Int = 1

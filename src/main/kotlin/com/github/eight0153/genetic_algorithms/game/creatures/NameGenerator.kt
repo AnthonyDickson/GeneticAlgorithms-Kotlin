@@ -7,6 +7,8 @@ object NameGenerator {
     private val adjectives: MutableMap<Char, MutableSet<String>> = HashMap()
     private val nouns: MutableMap<Char, MutableSet<String>> = HashMap()
 
+    private val previousUniqueNames: MutableSet<String> = HashSet()
+
     init {
         val adjectivesFile = Utils.loadResource("naming/adjectives.txt")
         parseFileContents(adjectivesFile, adjectives)
@@ -52,5 +54,27 @@ object NameGenerator {
         val noun = nouns[startingLetter]!!.random()
 
         return "$adjective $noun"
+    }
+
+    /**
+     * Generate a unique random name.
+     *
+     * This method will not generate names that have been generated through this method before.
+     */
+    fun uniqueRandom(): String {
+        var name: String
+
+        do {
+            val startingLetter = adjectives.keys.random()
+
+            val adjective = adjectives[startingLetter]!!.random()
+            val noun = nouns[startingLetter]!!.random()
+
+            name = "$adjective $noun"
+        } while (name in previousUniqueNames)
+
+        previousUniqueNames.add(name)
+
+        return name
     }
 }
