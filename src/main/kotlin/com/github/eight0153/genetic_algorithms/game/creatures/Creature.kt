@@ -12,6 +12,7 @@ import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Compani
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.METABOLIC_EFFICIENCY
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.REPLICATION_CHANCE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SENSORY_RANGE
+import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SHININESS
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SIZE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SPEED
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.THRIFTINESS
@@ -50,7 +51,8 @@ class Creature(
             chromosome[COLOUR_RED].toFloat(),
             chromosome[COLOUR_GREEN].toFloat(),
             chromosome[COLOUR_BLUE].toFloat()
-        )
+        ),
+        reflectance = chromosome[SHININESS].toFloat()
     )
 ) : GameObject(mesh, material, transform, boundingBox), TickerSubscriberI {
     companion object {
@@ -58,10 +60,10 @@ class Creature(
             return ResourcePool.getMesh("/models/cube.obj")
         }
 
-        fun createMaterial(colour: Vector3f? = null): Material {
+        fun createMaterial(colour: Vector3f? = null, reflectance: Float = 0.1f): Material {
             return Material(
                 colour ?: Utils.randomColour(),
-                0.1f
+                reflectance
             )
         }
 

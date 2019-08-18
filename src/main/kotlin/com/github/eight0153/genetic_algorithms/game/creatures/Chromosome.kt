@@ -40,9 +40,11 @@ class Chromosome {
         const val GREEDINESS = 0xa
         /** How likely a creature is likely to prioritise long-term planning over short-term planning. */
         const val THRIFTINESS = 0xb
+        /** How shiny a creature is. */
+        const val SHININESS = 0xc
 
         // TODO: Find a way to automatically calculate how many genes there are.
-        const val NUM_GENES = 12
+        const val NUM_GENES = 13
 
         val geneValueBounds = BoundsND(NUM_GENES)
 
@@ -80,6 +82,9 @@ class Chromosome {
 
             geneValueBounds.min[THRIFTINESS] = 0.0
             geneValueBounds.max[THRIFTINESS] = 1.0
+
+            geneValueBounds.min[SHININESS] = 0.0
+            geneValueBounds.max[SHININESS] = 1.0
         }
 
         private var chromosomeCounter = 0

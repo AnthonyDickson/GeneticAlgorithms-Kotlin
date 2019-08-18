@@ -8,6 +8,7 @@ import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Compani
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.METABOLIC_EFFICIENCY
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.REPLICATION_CHANCE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SENSORY_RANGE
+import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SHININESS
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SIZE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SPEED
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.THRIFTINESS
@@ -33,9 +34,9 @@ class CensusDataStore(
     private var shouldQuit: Boolean = false
 
     private var batchProcessingCoroutine: Job? = null
-    private val speciesBatch = ArrayList<Species>()
-    private val creaturesBatch = ArrayList<Creature>()
-    private val censusesBatch = ArrayList<Census>()
+    private val speciesBuffer = ArrayList<Species>()
+    private val creaturesBuffer = ArrayList<Creature>()
+    private val censusesBuffer = ArrayList<Census>()
 
     fun init() {
         connection = DriverManager.getConnection(DB_URL, DB_USER_NAME, DB_PASSWORD)
@@ -71,6 +72,7 @@ class CensusDataStore(
               `sensory_range` DOUBLE NOT NULL,
               `greediness` DOUBLE NOT NULL,
               `thriftiness` DOUBLE NOT NULL,
+              `shininess` DOUBLE NOT NULL,
               PRIMARY KEY (`id`),
               UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE)
         """.trimIndent()
@@ -139,46 +141,39 @@ class CensusDataStore(
     }
 
     fun add(species: Species) {
-        speciesBatch.add(species)
+        speciesBuffer.add(species)
     }
 
     fun add(creature: Creature) {
-        creaturesBatch.add(creature)
+        creaturesBuffer.add(creature)
     }
 
     fun add(census: Census) {
-        censusesBatch.add(census)
+        censusesBuffer.add(census)
     }
 
     private suspend fun processBatches() {
         var batchTime: Long
         while (!shouldQuit) {
             batchTime = measureTimeMillis {
-                // TODO: Fix foreign key constraint failures on batch update (seems to be species ids from creatures
-                //  not matching up).
-                val statement = connection?.createStatement()
-                //language=MySQL
-                var sql = """
-                    SET FOREIGN_KEY_CHECKS=0
-                """.trimIndent()
+                // Create copies of buffers to avoid concurrency issues such as items being added while batch queries
+                // are being built (this could cause creatures to be added whose species was not yet added to the
+                // database, causing foreign key constrain issues).
+                val speciesBatch = java.util.ArrayList<Species>(speciesBuffer.size)
+                speciesBatch.addAll(speciesBuffer)
+                speciesBuffer.clear()
 
-                statement?.execute(sql)
+                val creaturesBatch = java.util.ArrayList<Creature>(creaturesBuffer.size)
+                creaturesBatch.addAll(creaturesBuffer)
+                creaturesBuffer.clear()
+
+                val censusesBatch = java.util.ArrayList<Census>(censusesBuffer.size)
+                censusesBatch.addAll(censusesBuffer)
+                censusesBuffer.clear()
 
                 insertSpecies(speciesBatch)
-                speciesBatch.clear()
-
                 insertCreatures(creaturesBatch)
-                creaturesBatch.clear()
-
                 insertCensuses(censusesBatch)
-                censusesBatch.clear()
-
-                //language=MySQL
-                sql = """
-                    SET FOREIGN_KEY_CHECKS=1
-                """.trimIndent()
-
-                statement?.execute(sql)
             }
 
             delay(max(1L, updateInterval - batchTime))
@@ -207,8 +202,8 @@ class CensusDataStore(
             INSERT INTO `chromosomes` 
               (id, replication_chance, death_chance, speed, size, colour_red, 
                 colour_blue, colour_green, metabolic_efficiency, sensory_range, 
-                greediness, thriftiness) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+                greediness, thriftiness, shininess) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
         """.trimIndent()
         val insertChromosomeStatement = connection?.prepareStatement(sql)
 
@@ -232,6 +227,7 @@ class CensusDataStore(
             insertChromosomeStatement?.setDouble(10, creature.chromosome[SENSORY_RANGE])
             insertChromosomeStatement?.setDouble(11, creature.chromosome[GREEDINESS])
             insertChromosomeStatement?.setDouble(12, creature.chromosome[THRIFTINESS])
+            insertChromosomeStatement?.setDouble(13, creature.chromosome[SHININESS])
             insertChromosomeStatement?.addBatch()
 
             insertCreatureStatement?.setInt(1, creature.id)
