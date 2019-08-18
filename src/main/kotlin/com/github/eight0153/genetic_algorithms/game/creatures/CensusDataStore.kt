@@ -13,6 +13,7 @@ import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Compani
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SPEED
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.THRIFTINESS
 import kotlinx.coroutines.*
+import java.net.ConnectException
 import java.sql.Connection
 import java.sql.DriverManager
 import kotlin.math.max
@@ -39,9 +40,20 @@ class CensusDataStore(
     private val censusesBuffer = ArrayList<Census>()
 
     fun init() {
-        connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)
+        try {
+            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)
+        } catch (e: Exception) {
+            // TODO: Is it best to hide the original exception like this?
+            throw ConnectException(
+                "Something went wrong when trying to connect to the server.\n" +
+                        "Check that the server is running and your environment variables are set up appropriately."
+            )
+        }
+
         val statement = connection?.createStatement()
 
+        // TODO: Have something akin to a run id to distinguish between objects created by different instances of the
+        //  app and stop recreating the entire database each time the app is run.
         var sql = "DROP DATABASE IF EXISTS genetic_algorithms"
         statement?.execute(sql)
 

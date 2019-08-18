@@ -79,7 +79,15 @@ class Engine(
 
         keyboard = KeyboardInputHandler(window)
         mouse = MouseInputHandler(window)
-        gameManager.init(windowSize, windowName)
+
+        // A connectException is thrown if a connection to the backing store (database) cannot be made.
+        try {
+            gameManager.init(windowSize, windowName)
+        } catch (e: Exception) {
+            cleanup()
+
+            throw e
+        }
     }
 
     private fun mainLoop() {
@@ -167,5 +175,4 @@ class Engine(
             cleanup()
         }
     }
-
 }

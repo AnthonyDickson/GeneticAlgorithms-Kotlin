@@ -31,7 +31,13 @@ class CreatureManager(
     private val populationStatisticsLogger = PopulationStatisticsLogger()
 
     init {
-        censusDataStore.init()
+        try {
+            censusDataStore.init()
+        } catch (e: Exception) {
+            cleanup()
+
+            throw e
+        }
 
         repeat(initialPopulation) {
             creatures.add(Creature.create(World.bounds.sample()))

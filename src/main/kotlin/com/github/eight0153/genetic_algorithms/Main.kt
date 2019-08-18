@@ -5,6 +5,7 @@ import com.github.eight0153.genetic_algorithms.game.GameManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 
+// Make program configurable via config files
 fun main() {
     val windowSize = Vector2f(800.0f, 600.0f)
     val windowName = "Genetic Algorithms"
