@@ -18,17 +18,16 @@ import java.sql.DriverManager
 import kotlin.math.max
 import kotlin.system.measureTimeMillis
 
-// TODO: Docker-ise the MySQL server
 /** A persistent data store for population data. */
 class CensusDataStore(
     /** How often to update the backing store (i.e. perform database operations) in milliseconds. */
     private val updateInterval: Long = 1000L
 ) {
 
-    private val DB_URL = System.getenv("DB_URL") ?: "jdbc:mysql://localhost/"
+    private val DB_URL = System.getenv("DB_URL") ?: "jdbc:mysql://localhost:3306/"
 
     //  Database credentials
-    private val DB_USER_NAME = System.getenv("DB_USERNAME") ?: "root"
+    private val DB_USER = System.getenv("DB_USER") ?: "root"
     private val DB_PASSWORD = System.getenv("DB_PASSWORD") ?: "password"
 
     private var connection: Connection? = null
@@ -40,7 +39,7 @@ class CensusDataStore(
     private val censusesBuffer = ArrayList<Census>()
 
     fun init() {
-        connection = DriverManager.getConnection(DB_URL, DB_USER_NAME, DB_PASSWORD)
+        connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)
         val statement = connection?.createStatement()
 
         var sql = "DROP DATABASE IF EXISTS genetic_algorithms"
