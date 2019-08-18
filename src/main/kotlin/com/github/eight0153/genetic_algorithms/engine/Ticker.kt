@@ -10,6 +10,7 @@ class Ticker(
     /** The amount of time (seconds) between ticks, */
     private val tickerInterval: Double = 1.0
 ) {
+    var ticks: Int = 0
     private var timeSinceLastTick = 0.0
     private val subscribers = ArrayList<TickerSubscriberI>()
     private val newSubscribers = ArrayList<TickerSubscriberI>()
@@ -34,8 +35,9 @@ class Ticker(
         unsubscribers.clear()
 
         if (timeSinceLastTick >= tickerInterval) {
-            timeSinceLastTick = 0.0
             subscribers.forEach { it.onTick() }
+            timeSinceLastTick = 0.0
+            ticks++
         }
     }
 }

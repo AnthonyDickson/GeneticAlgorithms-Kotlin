@@ -81,9 +81,14 @@ class Creature(
         }
 
         private const val STARTING_ENERGY = 100.0
+        private var creatureCounter = 0
+        val nextId: Int get() = ++creatureCounter
     }
 
-    var age = 0.0
+    val id = nextId
+    var species: Species? = null
+
+    var age = 0
     private var hunger = 0.0
     // TODO: Implement a thirstiness mechanic?
 //    private var thirstiness = 0.0

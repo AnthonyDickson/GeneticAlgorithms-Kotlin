@@ -7,8 +7,12 @@ class Species(
 ) {
     companion object {
         const val SIMILARITY_THRESHOLD = 0.0
+
+        private var speciesCounter = 0
+        val nextId: Int get() = ++speciesCounter
     }
 
+    val id: Int = nextId
     var members: MutableSet<Creature> = HashSet()
     private var numPastMembers = 0
 
@@ -31,6 +35,7 @@ class Species(
     fun add(creature: Creature): Boolean {
         return if (creature.similarity(representativeCreature) > SIMILARITY_THRESHOLD) {
             members.add(creature)
+            creature.species = this
 
             true
         } else {

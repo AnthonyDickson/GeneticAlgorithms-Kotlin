@@ -9,7 +9,11 @@ import com.github.eight0153.genetic_algorithms.engine.input.MouseInputHandler
 import com.github.eight0153.genetic_algorithms.game.World
 import org.lwjgl.glfw.GLFW
 
-class CreatureManager(initialPopulation: Int = 100) :
+class CreatureManager(
+    initialPopulation: Int = 100,
+    /** How often (in ticks) a [Census] should be taken. */
+    private val ticksPerCensus: Int = 60
+) :
     GameLogicManagerI, TickerSubscriberI {
 
     companion object {
@@ -18,18 +22,21 @@ class CreatureManager(initialPopulation: Int = 100) :
 
     override val controls: Map<String, String>
         get() = mapOf(
-            Pair("F3", "Toggle population statistics"),
-            Pair("F4", "Print census")
+            Pair("F3", "Toggle population statistics")
         )
 
     val creatures = ArrayList<Creature>()
     val species = ArrayList<Species>()
+    private val censusDataStore = CensusDataStore()
     private val populationStatisticsLogger = PopulationStatisticsLogger()
 
     init {
+        censusDataStore.init()
+
         repeat(initialPopulation) {
             creatures.add(Creature.create(World.bounds.sample()))
             assignSpecies(creatures.last())
+            censusDataStore.add(creatures.last())
         }
 
         Engine.ticker.subscribe(this)
@@ -48,13 +55,14 @@ class CreatureManager(initialPopulation: Int = 100) :
 
         if (!foundSpecies) {
             species.add(Species(NameGenerator.uniqueRandom(), creature))
+            species.last().add(creature)
+            censusDataStore.add(species.last())
         }
     }
 
     override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
         when {
             keyboard.wasPressed(GLFW.GLFW_KEY_F3) -> populationStatisticsLogger.toggle()
-            keyboard.wasPressed(GLFW.GLFW_KEY_F4) -> Census(creatures, species).printSummary()
         }
 
         return true
@@ -84,12 +92,17 @@ class CreatureManager(initialPopulation: Int = 100) :
 
                 creatureIterator.add(offspring)
                 assignSpecies(offspring)
+                censusDataStore.add(offspring)
                 numBirths++
             }
         }
 
         species.removeAll { it.isExtinct }
         populationStatisticsLogger.update(creatures.size, numBirths, numDeaths)
+
+        if (Engine.ticker.ticks % ticksPerCensus == 0) {
+            censusDataStore.add(Census(creatures, species))
+        }
     }
 
     override fun update(delta: Double) {
@@ -107,6 +120,7 @@ class CreatureManager(initialPopulation: Int = 100) :
 
     override fun cleanup() {
         creatures.forEach { it.cleanup() }
+        censusDataStore.cleanup()
 
         Engine.ticker.unsubscribe(this)
     }

@@ -101,16 +101,16 @@ class DayNightCycleManager(
 
     override val controls: Map<String, String>
         get() = mapOf(
-            Pair("F5", "Toggle Timestamp Logging"),
-            Pair("F6", "Toggle Day/Night Cycle"),
-            Pair("F7", "Toggle Day/Night (Only when day/night cycle is OFF)")
+            Pair("F4", "Toggle Timestamp Logging"),
+            Pair("F5", "Toggle Day/Night Cycle"),
+            Pair("F6", "Toggle Day/Night (Only when day/night cycle is OFF)")
         )
 
     override fun handleInput(delta: Double, keyboard: KeyboardInputHandler, mouse: MouseInputHandler): Boolean {
         when {
-            keyboard.wasPressed(GLFW.GLFW_KEY_F5) -> timeDateLogger.toggle()
-            keyboard.wasPressed(GLFW.GLFW_KEY_F6) -> toggle()
-            keyboard.wasPressed(GLFW.GLFW_KEY_F7) -> {
+            keyboard.wasPressed(GLFW.GLFW_KEY_F4) -> timeDateLogger.toggle()
+            keyboard.wasPressed(GLFW.GLFW_KEY_F5) -> toggle()
+            keyboard.wasPressed(GLFW.GLFW_KEY_F6) -> {
                 if (!shouldUpdate) {
                     timeOfDay = if (timeOfDay == MIDDAY) MIDNIGHT else MIDDAY
                 }

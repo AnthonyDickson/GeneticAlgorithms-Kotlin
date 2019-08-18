@@ -81,12 +81,17 @@ class Chromosome {
             geneValueBounds.min[THRIFTINESS] = 0.0
             geneValueBounds.max[THRIFTINESS] = 1.0
         }
+
+        private var chromosomeCounter = 0
+
+        val nextId: Int get() = ++chromosomeCounter
     }
 
-    private var genes: Array<Double> = Array(NUM_GENES) { 0.0 }
+    val id: Int = nextId
+    private val genes: Array<Double> = Array(NUM_GENES) { 0.0 }
 
     constructor() {
-        genes = geneValueBounds.sample()
+        geneValueBounds.sample().copyInto(genes)
     }
 
     constructor(chromosome: Chromosome) {

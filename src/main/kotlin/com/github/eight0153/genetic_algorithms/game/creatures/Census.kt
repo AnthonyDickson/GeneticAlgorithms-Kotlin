@@ -17,16 +17,23 @@ import kotlin.math.sqrt
 
 // TODO: Export census data to a server and view via web page (give option to view absolute numbers and stacked percentages)
 class Census(
-    val population: List<Creature>,
-    val species: List<Species>
+    population: List<Creature>,
+    species: List<Species>
 ) {
     companion object {
-        var censusNumber = 0
         const val FORMAT_STRING = "%-24s: %05.2f - %05.2f - %05.2f - %05.2f - %05.2f"
+
+        private var censusCount = 0
+        val nextId: Int get() = ++censusCount
     }
 
+    val id: Int = nextId
+    val population: MutableList<Creature> = ArrayList(population.size)
+    val species: MutableList<Species> = ArrayList(species.size)
+
     init {
-        censusNumber++
+        this.population.addAll(population)
+        this.species.addAll(species)
     }
 
     private val speciesMetrics = mapOf<String, (Species) -> Double>(
@@ -35,7 +42,7 @@ class Census(
     )
 
     private val creatureMetrics = mapOf<String, (Creature) -> Double>(
-        Pair("Age", { creature -> creature.age })
+        Pair("Age", { creature -> creature.age.toDouble() })
     )
 
     private val geneMetrics = mapOf(
@@ -55,7 +62,7 @@ class Census(
 
 
     fun printSummary() {
-        println("Census #$censusNumber")
+        println("Census #$id")
 
         var values = Array(population.size) { 0.0 }
 
