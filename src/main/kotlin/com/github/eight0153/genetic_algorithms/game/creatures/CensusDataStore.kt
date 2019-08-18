@@ -19,6 +19,7 @@ import kotlin.math.max
 import kotlin.system.measureTimeMillis
 
 // TODO: Docker-ise the MySQL server
+/** A persistent data store for population data. */
 class CensusDataStore(
     /** How often to update the backing store (i.e. perform database operations) in milliseconds. */
     private val updateInterval: Long = 1000L
@@ -102,10 +103,12 @@ class CensusDataStore(
               CONSTRAINT `chromosome_fk`
                 FOREIGN KEY (`chromosome_id`)
                 REFERENCES `genetic_algorithms`.`chromosomes` (`id`)
+                ON UPDATE CASCADE 
                 ON DELETE CASCADE,
               CONSTRAINT `species_fk`
                 FOREIGN KEY (`species_id`)
                 REFERENCES `genetic_algorithms`.`species` (`id`)
+                ON UPDATE CASCADE 
                 ON DELETE CASCADE)
         """.trimIndent()
         statement?.execute(sql)
@@ -114,17 +117,19 @@ class CensusDataStore(
         sql = """
             CREATE TABLE IF NOT EXISTS `genetic_algorithms`.`census_participants` (
               `census_id` INT(10) UNSIGNED NOT NULL,
-              `participant_id` INT(10) UNSIGNED NOT NULL,
+              `creature_id` INT(10) UNSIGNED NOT NULL,
               INDEX `census_fk_idx` (`census_id` ASC) VISIBLE,
-              INDEX `individual_id_idx` (`participant_id` ASC) VISIBLE,
-              PRIMARY KEY (`participant_id`, `census_id`),
+              INDEX `creature_id_idx` (`creature_id` ASC) VISIBLE,
+              PRIMARY KEY (`creature_id`, `census_id`),
               CONSTRAINT `census_fk`
                 FOREIGN KEY (`census_id`)
                 REFERENCES `genetic_algorithms`.`censuses` (`id`)
+                ON UPDATE CASCADE 
                 ON DELETE CASCADE,
-              CONSTRAINT `participant_fk`
-                FOREIGN KEY (`participant_id`)
+              CONSTRAINT `creature_fk`
+                FOREIGN KEY (`creature_id`)
                 REFERENCES `genetic_algorithms`.`creatures` (`id`)
+                ON UPDATE CASCADE 
                 ON DELETE CASCADE)
         """.trimIndent()
         statement?.execute(sql)
@@ -154,6 +159,7 @@ class CensusDataStore(
 
     private suspend fun processBatches() {
         var batchTime: Long
+
         while (!shouldQuit) {
             batchTime = measureTimeMillis {
                 // Create copies of buffers to avoid concurrency issues such as items being added while batch queries
@@ -246,22 +252,22 @@ class CensusDataStore(
 
     private fun insertCensuses(censuses: List<Census>) {
         //language=MySQL
-        val sql: String = """
+        var sql: String = """
                 INSERT INTO censuses (id) VALUES (?)
             """.trimIndent()
         val insertCensusStatement = connection?.prepareStatement(sql)
 
         //language=MySQL
-        val updateCreatureSql = """
+        sql = """
             UPDATE `creatures` SET age = ? WHERE id = ?
         """.trimIndent()
-        val updateCreatureStatement = connection?.prepareStatement(updateCreatureSql)
+        val updateCreatureStatement = connection?.prepareStatement(sql)
 
         //language=MySQL
-        val insertCensusParticipantSql = """
-            INSERT INTO census_participants (census_id, participant_id) VALUES (?, ?)
+        sql = """
+            INSERT INTO census_participants (census_id, creature_id) VALUES (?, ?)
         """.trimIndent()
-        val insertCensusParticipantStatement = connection?.prepareStatement(insertCensusParticipantSql)
+        val insertCensusParticipantStatement = connection?.prepareStatement(sql)
 
         for (census in censuses) {
             insertCensusStatement?.setInt(1, census.id)

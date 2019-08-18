@@ -101,7 +101,7 @@ class CreatureManager(
         populationStatisticsLogger.update(creatures.size, numBirths, numDeaths)
 
         if (Engine.ticker.ticks % ticksPerCensus == 0) {
-            censusDataStore.add(Census(creatures, species))
+            censusDataStore.add(Census(creatures))
         }
     }
 
