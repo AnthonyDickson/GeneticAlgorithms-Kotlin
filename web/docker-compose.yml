@@ -4,7 +4,7 @@ services:
     image: mysql:8.0.17
     restart: always
     env_file:
-      - mysql.env
+      - .env
     ports:
       - '3306:3306'
     expose:

@@ -7,9 +7,12 @@ Large portions of the code for the game engine is based on code from the online 
 ## Getting Started
 1.  Download and install [JDK 11.0.3](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html)
     if you do not have it installed already.
+    
+2.  Download and install [Node 10.16.3+](https://nodejs.org/en/download/) if you do not have it installed already.
+
 2.  Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop) if you do not have it installed already.
 
-3.  Create the file `web/mysql.env` and fill in the following fields appropriately:
+3.  Create the file `web/.env` and fill in the following fields appropriately:
     ```.env
     MYSQL_USER=root
     MYSQL_PASSWORD=password
