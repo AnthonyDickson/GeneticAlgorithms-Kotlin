@@ -12,6 +12,7 @@ import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Compani
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SIZE
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.SPEED
 import com.github.eight0153.genetic_algorithms.game.creatures.Chromosome.Companion.THRIFTINESS
+import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.*
 import java.net.ConnectException
 import java.sql.Connection
@@ -24,12 +25,11 @@ class CensusDataStore(
     /** How often to update the backing store (i.e. perform database operations) in milliseconds. */
     private val updateInterval: Long = 1000L
 ) {
+    private val dotenv = dotenv()
 
-    private val DB_URL = System.getenv("DB_URL") ?: "jdbc:mysql://localhost:3306/"
-
-    //  Database credentials
-    private val DB_USER = System.getenv("DB_USER") ?: "root"
-    private val DB_PASSWORD = System.getenv("DB_PASSWORD") ?: "password"
+    private val MYSQL_JDBC_URI = dotenv["MYSQL_JDBC_URI"] ?: "jdbc:mysql://localhost/"
+    private val MYSQL_USER = dotenv["MYSQL_USER"] ?: "root"
+    private val MYSQL_PASSWORD = dotenv["MYSQL_PASSWORD"] ?: "password"
 
     private var connection: Connection? = null
     private var shouldQuit: Boolean = false
@@ -43,7 +43,8 @@ class CensusDataStore(
 
     fun init() {
         try {
-            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)
+            connection = DriverManager.getConnection(MYSQL_JDBC_URI, MYSQL_USER, MYSQL_PASSWORD)
+            // TODO: Scrub environment variable data?
         } catch (e: Exception) {
             // TODO: Is it best to hide the original exception like this?
             throw ConnectException(

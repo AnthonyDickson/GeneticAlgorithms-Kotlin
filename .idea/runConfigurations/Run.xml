@@ -18,11 +18,6 @@
     <option name="PASS_PARENT_ENVS" value="true" />
     <option name="MAIN_CLASS_NAME" value="com.github.eight0153.genetic_algorithms.MainKt" />
     <option name="WORKING_DIRECTORY" value="" />
-    <envs>
-      <env name="DB_URL" value="jdbc:mysql://localhost:3306/" />
-      <env name="DB_USER" value="root" />
-      <env name="DB_PASSWORD" value="password" />
-    </envs>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

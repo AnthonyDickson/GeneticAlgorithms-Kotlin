@@ -12,22 +12,13 @@ Large portions of the code for the game engine is based on code from the online 
 
 2.  Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop) if you do not have it installed already.
 
-3.  Create the file `.env` and fill in the following fields appropriately:
+3.  Create the file `.env` and fill it in using the following format:
     ```.env
-    MYSQL_USER=root
-    MYSQL_PASSWORD=password
-    MYSQL_ROOT_PASSWORD=password
+    MYSQL_JDBC_URI=jdbc:mysql://<url-to-mysql-db>/
+    MYSQL_USER=<mysql-user>
+    MYSQL_PASSWORD=<mysql-password>
     ```
-    
-    For the Kotlin side of things you will also need to tell the program where to find the server and the username and 
-    password to use. This can be done as follows:
-    ```shell script
-    export DB_URL=jdbc:mysql://<url-to-database>/
-    export DB_USER=<database-username>
-    export DB_PASSWORD=<database-password>
-    ```
-    The development server is set up to run on localhost:3306, so this is a good default if you're not sure what to set 
-    the URL to.
+    You can use the file `.env.template` as a starting point.
     
 4.  Start up the web services with Docker compose:
     ```shell script

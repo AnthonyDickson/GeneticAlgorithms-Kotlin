@@ -34,6 +34,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutineVersion"
 
+    compile 'io.github.cdimascio:java-dotenv:5.1.1'
+
     implementation "org.lwjgl:lwjgl:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-assimp:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-bgfx:$lwjglVersion"
