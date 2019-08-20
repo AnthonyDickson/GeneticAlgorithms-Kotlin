@@ -17,6 +17,7 @@ Large portions of the code for the game engine is based on code from the online 
     MYSQL_JDBC_URI=jdbc:mysql://<url-to-mysql-db>/
     MYSQL_USER=<mysql-user>
     MYSQL_PASSWORD=<mysql-password>
+    MYSQL_ROOT_PASSWORD=<mysql-root-password>
     ```
     You can use the file `.env.template` as a starting point.
     
