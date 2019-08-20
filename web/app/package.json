@@ -1,0 +1,20 @@
+{
+  "name": "genetic-algorithms-web-app",
+  "version": "1.0.0",
+  "scripts": {
+    "client": "cd client && npm run start",
+    "server": "nodemon server.js",
+    "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "react-scripts": "3.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.1",
+    "concurrently": "^4.0.1"
+  }
+}
