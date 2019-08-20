@@ -57,7 +57,7 @@ class CensusDataStore(
 
         //language=MySQL
         var sql = """
-            CREATE SCHEMA IF NOT EXISTS `genetic_algorithms` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci
+            CREATE SCHEMA IF NOT EXISTS `genetic_algorithms`
         """.trimIndent()
         statement?.execute(sql)
 
@@ -74,7 +74,7 @@ class CensusDataStore(
                 `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT,
                 `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (`id`),
-                UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE
+                UNIQUE INDEX `id_UNIQUE` (`id` ASC)
             )
                 ENGINE = InnoDB
             """.trimIndent()
@@ -88,7 +88,7 @@ class CensusDataStore(
                 `run_id`       INT UNSIGNED     NOT NULL,
                 `date_created` DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (`id`, `run_id`),
-                INDEX `fk_censuses_runs1_idx` (`run_id` ASC) VISIBLE,
+                INDEX `fk_censuses_runs1_idx` (`run_id` ASC),
                 CONSTRAINT `fk_censuses_runs1`
                     FOREIGN KEY (`run_id`)
                         REFERENCES `genetic_algorithms`.`runs` (`id`)
@@ -96,9 +96,6 @@ class CensusDataStore(
                         ON UPDATE NO ACTION
             )
                 ENGINE = InnoDB
-                AUTO_INCREMENT = 4
-                DEFAULT CHARACTER SET = utf8mb4
-                COLLATE = utf8mb4_0900_ai_ci
         """.trimIndent()
         statement?.execute(sql)
 
@@ -110,7 +107,7 @@ class CensusDataStore(
                 `run_id` INT UNSIGNED     NOT NULL,
                 `name`   VARCHAR(45)      NOT NULL,
                 PRIMARY KEY (`id`, `run_id`),
-                INDEX `fk_species_runs1_idx` (`run_id` ASC) VISIBLE,
+                INDEX `fk_species_runs1_idx` (`run_id` ASC),
                 CONSTRAINT `fk_species_runs1`
                     FOREIGN KEY (`run_id`)
                         REFERENCES `genetic_algorithms`.`runs` (`id`)
@@ -118,9 +115,6 @@ class CensusDataStore(
                         ON UPDATE NO ACTION
             )
                 ENGINE = InnoDB
-                AUTO_INCREMENT = 620
-                DEFAULT CHARACTER SET = utf8mb4
-                COLLATE = utf8mb4_0900_ai_ci
         """.trimIndent()
         statement?.execute(sql)
 
@@ -145,8 +139,8 @@ class CensusDataStore(
                 `thriftiness`          DOUBLE           NOT NULL,
                 `shininess`            DOUBLE           NOT NULL,
                 PRIMARY KEY (`id`, `run_id`),
-                INDEX `fk_creatures_runs1_idx` (`run_id` ASC) VISIBLE,
-                INDEX `fk_creatures_species1_idx` (`species_id` ASC, `run_id` ASC) VISIBLE,
+                INDEX `fk_creatures_runs1_idx` (`run_id` ASC),
+                INDEX `fk_creatures_species1_idx` (`species_id` ASC, `run_id` ASC),
                 CONSTRAINT `fk_creatures_runs1`
                     FOREIGN KEY (`run_id`)
                         REFERENCES `genetic_algorithms`.`runs` (`id`)
@@ -159,9 +153,6 @@ class CensusDataStore(
                         ON UPDATE NO ACTION
             )
                 ENGINE = InnoDB
-                AUTO_INCREMENT = 2965
-                DEFAULT CHARACTER SET = utf8mb4
-                COLLATE = utf8mb4_0900_ai_ci
         """.trimIndent()
         statement?.execute(sql)
 
@@ -173,8 +164,8 @@ class CensusDataStore(
             `census_id`  INT(10) UNSIGNED NOT NULL,
             `creature_id` INT(10) UNSIGNED NOT NULL,
             PRIMARY KEY (`run_id`, `census_id`, `creature_id`),
-            INDEX `fk_census_participants_runs1_idx` (`run_id` ASC) VISIBLE,
-            INDEX `fk_census_participants_creatures1_idx` (`creature_id` ASC, `run_id` ASC) VISIBLE,
+            INDEX `fk_census_participants_runs1_idx` (`run_id` ASC),
+            INDEX `fk_census_participants_creatures1_idx` (`creature_id` ASC, `run_id` ASC),
             CONSTRAINT `fk_census_participants_runs1`
                 FOREIGN KEY (`run_id`)
                     REFERENCES `genetic_algorithms`.`runs` (`id`)
@@ -192,8 +183,6 @@ class CensusDataStore(
                     ON UPDATE NO ACTION
         )
             ENGINE = InnoDB
-            DEFAULT CHARACTER SET = utf8mb4
-            COLLATE = utf8mb4_0900_ai_ci
         """.trimIndent()
         statement?.execute(sql)
 

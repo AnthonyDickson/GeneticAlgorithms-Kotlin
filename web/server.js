@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
+const mysql = require('mysql');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -29,5 +30,22 @@ if (process.env.NODE_ENV === 'production') {
         res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
     });
 }
+
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQL_PASSWORD || 'password',
+    database: 'genetic_algorithms'
+});
+
+connection.connect();
+
+connection.query('SELECT 1 + 1 AS solution', function (err, rows, fields) {
+    if (err) throw err;
+
+    console.log('The solution is: ', rows[0].solution)
+});
+
+connection.end();
 
 app.listen(port, () => console.log(`Listening on port ${port}`));

@@ -1,14 +1,13 @@
 version: '3.3'
 services:
   db:
-    image: mysql:8.0.17
+    image: mysql:5.7.27
     restart: always
     env_file:
       - .env
     ports:
       - '3306:3306'
     expose:
-      # Opens port 3306 on the container
       - '3306'
     volumes:
       - db:/var/lib/mysql
