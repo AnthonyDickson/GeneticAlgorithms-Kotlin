@@ -37,10 +37,10 @@ Large portions of the code for the game engine is based on code from the online 
     
 6.  You can stop the web services with:
     ```shell script
-    docker-compose -f web/docker-compose.yml stop db
+    docker-compose -f docker-compose.yml stop db
     ```
     which keeps the containers and images or
     ```shell script
-    docker-compose -f web/docker-compose.yml down db
+    docker-compose -f docker-compose.yml down db
     ```
     which will remove the containers and images.
