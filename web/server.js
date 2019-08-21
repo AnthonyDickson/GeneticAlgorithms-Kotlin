@@ -22,19 +22,82 @@ app.get('/api', (req, res) => {
     res.send({message: 'Hello, World!'});
 });
 
+// TODO: Refactor routes into controller+router
 app.get('/api/runs', (req, res) => {
-    connection.query('SELECT id, create_time FROM runs', function (err, rows) {
-        if (err) throw err;
+    connection.query(
+        'SELECT id, create_time FROM runs',
+        (err, rows) => {
+            if (err) throw err;
 
-        res.send({runs: rows});
-    });
+            res.send({runs: rows});
+        }
+    );
 });
 
-// TODO: Create endpoint to pull down all data for a given run.
-app.get('/api/runs/:id', (req, res) => {
-    res.status(501);
-    res.send({message: 'Endpoint not implemented.'})
+app.get('/api/runs/:run_id', (req, res) => {
+    connection.query(
+        `SELECT runs.id, runs.create_time FROM runs WHERE id = ${req.params.run_id}`,
+        (err, rows) => {
+            if (err) throw err;
+
+            res.send({run: rows[0]})
+        }
+    )
 });
+
+const creatures_sql = `
+    SELECT runs.id              AS run_id,
+           creatures.id         AS creature_id,
+           creatures.species_id AS species_id,
+           creatures.age,
+           creatures.replication_chance,
+           creatures.death_chance,
+           creatures.speed,
+           creatures.size,
+           creatures.colour_red,
+           creatures.colour_green,
+           creatures.colour_blue,
+           creatures.metabolic_efficiency,
+           creatures.sensory_range,
+           creatures.greediness,
+           creatures.thriftiness,
+           creatures.shininess
+    FROM runs
+             JOIN
+         creatures ON creatures.run_id = runs.id
+`;
+
+app.get('/api/runs/:run_id/creatures/', (req, res) => {
+    connection.query(
+        // language=MySQL
+        creatures_sql + `WHERE runs.id = ${req.params.run_id}`,
+        (err, rows) => {
+            if (err) throw err;
+
+            res.send({creature: rows})
+        }
+    )
+});
+
+app.get('/api/runs/:run_id/creatures/:creature_id', (req, res) => {
+    connection.query(
+        // language=MySQL
+        creatures_sql + `
+            WHERE 
+                runs.id = ${req.params.run_id} 
+                    AND 
+                creatures.id = ${req.params.creature_id}
+        `,
+        (err, rows) => {
+            if (err) throw err;
+
+            res.send({creature: rows[0]})
+        }
+    )
+});
+
+// TODO: Add routes for getting species (should be under path /runs/:run_id/species/:species_id?).
+// TODO: Add routes for getting censuses (should be under path /runs/:run_id/censuses/:census_id?).
 
 if (process.env.NODE_ENV === 'production') {
     // Serve any static files
