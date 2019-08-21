@@ -1,115 +1,102 @@
 import './App.css';
 
+import {Button, Layout, Modal, Result, Skeleton, Typography} from 'antd';
+
 import React, {Component} from 'react';
-import {Breadcrumb, Button, Form, Icon, Input, Layout, Menu, Typography} from 'antd';
+import {Link, Redirect, Route, Switch} from 'react-router-dom';
+
+import RunsList from "./components/RunsList";
+import Breadcrumbs from "./components/breadcrumbs";
 
 class App extends Component {
     state = {
-        response: '',
-        post: '',
-        responseToPost: '',
+        loading: true,
+        runs: []
     };
 
     componentDidMount() {
-        this.callApi()
-            .then(res => this.setState({response: res.express}))
-            .catch(err => console.log(err));
+        this.fetchRuns()
     }
 
-    callApi = async () => {
-        const response = await fetch('/api/hello');
-        const body = await response.json();
-        if (response.status !== 200) throw Error(body.message);
+    fetchRuns = () => {
+        this.setState({loading: true});
+        const url = '/api/runs';
 
-        return body;
-    };
+        fetch(url)
+            .then(res => {
+                if (res.status !== 200) throw Error(`${res.status}: ${res.statusText}`);
 
-    handleSubmit = async e => {
-        e.preventDefault();
-        const response = await fetch('/api/world', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({post: this.state.post}),
+                return res.json();
+            })
+            .then(res => {
+                this.setState({runs: res.runs});
+            })
+            .catch(err => {
+                console.log(err);
+                Modal.error({
+                    title: 'Error: Could not load data!',
+                    content: `Request to '${url}' failed. Reason: '${err.message}'.`,
+                });
+            }).finally(() => {
+            this.setState({loading: false})
         });
-        const body = await response.text();
-
-        this.setState({responseToPost: body});
     };
 
     render() {
-        // TODO: Use React Router for breadcrumbs. See: https://ant.design/components/breadcrumb/
-        const routes = [
-            {
-                path: 'index',
-                breadcrumbName: 'First-level Menu',
-            },
-            {
-                path: 'first',
-                breadcrumbName: 'Second-level Menu',
-            },
-            {
-                path: 'second',
-                breadcrumbName: 'Third-level Menu',
-            },
-        ];
-
         return (
             <Layout>
-                <Layout.Sider
-                    style={{
-                        overflow: 'auto',
-                        height: '100vh',
-                        position: 'fixed',
-                        left: 0,
-                    }}
-                >
-                    <div className="logo"/>
-                    <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
-                        <Menu.Item key="1">
-                            <Icon type="ordered-list"/>
-                            <span className="nav-text">Runs</span>
-                        </Menu.Item>
-                        <Menu.Item key="2">
-                            <Icon type="bar-chart"/>
-                            <span className="nav-text">Default Dashboard</span>
-                        </Menu.Item>
-                    </Menu>
-                </Layout.Sider>
-                <Layout style={{marginLeft: 200}}>
-                    <Layout.Header style={{background: '#fff', padding: '24px 16px', minHeight: 120}}>
-                        <Typography>
-                            <Typography.Title>Title</Typography.Title>
-                            <Breadcrumb routes={routes}/>
-                        </Typography>
-                    </Layout.Header>
-                    <Layout.Content style={{margin: '24px 16px 0'}}>
-                        <div style={{padding: 24, background: '#fff', minHeight: 360}}>
-                            <p>{this.state.response}</p>
-                            <Form onSubmit={this.handleSubmit} className="server-message-form">
-                                <Form.Item>
-                                    <strong>Post to Server:</strong>
-                                    <Input
-                                        type="text"
-                                        placeholder="Message"
-                                        value={this.state.post}
-                                        onChange={e => this.setState({post: e.target.value})}
-                                    />
-                                </Form.Item>
-
-                                <Form.Item>
-                                    <Button type="primary" htmlType="submit">Submit</Button>
-                                </Form.Item>
-                            </Form>
-                            <p>{this.state.responseToPost}</p>
-                        </div>
-                    </Layout.Content>
-                    <Layout.Footer style={{textAlign: 'center'}}>Ant Design ©2018 Created by Ant UED</Layout.Footer>
-                </Layout>
+                <Layout.Header style={{background: '#fff', padding: '24px 16px', minHeight: 120}}>
+                    <Typography>
+                        <Typography.Title>Genetic Algorithms</Typography.Title>
+                        <Breadcrumbs/>
+                    </Typography>
+                </Layout.Header>
+                <Layout.Content style={{margin: '24px 16px 0'}}>
+                    <div style={{padding: 24, background: '#fff', minHeight: 360}}>
+                        <Switch>
+                            <Route exact path="/" render={() => <Redirect to={"/runs"}/>}/>
+                            <Route path="/runs/:id" component={this.Run}/>
+                            <Route path="/runs" render={() => <RunsList runs={this.state.runs}
+                                                                        loading={this.state.loading}/>
+                            }
+                            />
+                            <Route component={this.NotFound}/>
+                        </Switch>
+                    </div>
+                </Layout.Content>
+                <Layout.Footer style={{textAlign: 'center'}}>Ant Design ©2018 Created by Ant UED</Layout.Footer>
             </Layout>
         );
     }
+
+    Run = ({match}) => {
+        if (this.state.loading) {
+            return <Skeleton active/>
+        }
+
+        const runId = parseInt(match.params.id);
+        const runIdExists = this.state.runs.findIndex(element => element.id === runId) !== -1;
+
+        // TODO: Display run data and stats
+        return (
+            runIdExists ?
+                <div>
+                    <h2>{runId}</h2>
+                    <p>Placeholder text.</p>
+                </div>
+                :
+                this.NotFound()
+        );
+    };
+
+    NotFound = () => {
+        return <Result
+            status="404"
+            title="404"
+            subTitle="Sorry, the page you visited does not exist."
+            extra={<Button type="primary"><Link to="/">Back Home</Link></Button>}
+        />
+    };
 }
 
 export default App;
